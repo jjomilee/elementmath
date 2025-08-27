@@ -191,6 +191,15 @@
       updateWrongList();
     }
 
+  document.getElementById("answerInput").addEventListener("keydown", function (e) {
+    if (e.key === "Enter") {
+      checkAnswer();
+    }
+  });
+
+
+
+    
     nextQuestion();
     updateStats();
     updateWrongList();
