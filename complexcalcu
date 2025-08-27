@@ -1,0 +1,492 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>복잡한 사칙연산 연습 (난이도 설정)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Comic Sans MS', 'Arial', sans-serif;
+      background: linear-gradient(to bottom right, #d7fffe, #ffecd2);
+      text-align: center;
+      padding: 40px;
+      color: #333;
+    }
+
+    h1 { font-size: 2em; margin-bottom: 16px; }
+
+    .panel {
+      display: inline-block;
+      text-align: left;
+      background: #ffffffee;
+      padding: 16px 18px;
+      border-radius: 12px;
+      box-shadow: 0 0 10px #ccc;
+      margin-bottom: 18px;
+    }
+
+    .panel h2 {
+      margin: 0 0 10px;
+      font-size: 1.1em;
+      color: #444;
+    }
+
+    .row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+    .row > label { font-size: .95em; }
+    .row input[type="number"] { width: 90px; padding: 6px 8px; }
+    .row input[type="checkbox"] { transform: translateY(1px); }
+    .row .chip { padding: 6px 10px; background: #f4f6ff; border-radius: 10px; border: 1px solid #d9defa; }
+    .divider { height: 8px; }
+
+    .question { font-size: 2.1em; margin: 22px 0; color: #222; line-height: 1.25; }
+
+    input.answer {
+      font-size: 1.4em; width: 140px; text-align: center; padding: 10px;
+      border-radius: 10px; border: 2px solid #aaa;
+    }
+
+    button {
+      font-size: 1.05em; padding: 10px 18px; margin: 8px; border-radius: 12px;
+      border: none; background-color: #7E57C2; color: white; cursor: pointer;
+    }
+    button:hover { background-color: #6a46b5; }
+    button:disabled { background-color: #c5b4e5; cursor: not-allowed; }
+
+    #result { font-size: 1.1em; margin-top: 16px; font-weight: bold; }
+
+    #stats {
+      margin-top: 24px; font-size: 1.02em; background: #ffffffcc; padding: 12px 20px;
+      border-radius: 10px; display: inline-block; box-shadow: 0 0 8px #ccc;
+    }
+
+    #wrongList {
+      margin-top: 22px; text-align: left; max-width: 560px; margin-left: auto; margin-right: auto;
+      background: #fff8e6; padding: 14px; border-radius: 10px; box-shadow: 0 0 5px #ccc;
+    }
+
+    .wrong-item { font-size: 1em; margin: 5px 0; }
+
+    .back { margin-top: 28px; display: inline-block; font-size: 1em; color: #0077cc; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <h1>🧠 복잡한 사칙연산 연습</h1>
+
+  <!-- 설정 패널 -->
+  <div class="panel" id="settingsPanel">
+    <h2>난이도 설정</h2>
+    <div class="row">
+      <label class="chip">
+        난이도:
+        <select id="levelSelect">
+          <option value="easy">쉬움</option>
+          <option value="normal" selected>보통</option>
+          <option value="hard">어려움</option>
+          <option value="custom">사용자 지정</option>
+        </select>
+      </label>
+
+      <label class="chip">최솟값 <input type="number" id="minNum" value="10"></label>
+      <label class="chip">최댓값 <input type="number" id="maxNum" value="99"></label>
+
+      <span class="chip">
+        연산자:
+        <label><input type="checkbox" id="opPlus" checked> +</label>
+        <label><input type="checkbox" id="opMinus" checked> −</label>
+        <label><input type="checkbox" id="opMul" checked> ×</label>
+        <label><input type="checkbox" id="opDiv" checked> ÷</label>
+      </span>
+
+      <span class="chip">
+        항 개수:
+        <label><input type="radio" name="terms" value="2" checked> 2개</label>
+        <label><input type="radio" name="terms" value="3"> 3개</label>
+      </span>
+
+      <label class="chip"><input type="checkbox" id="useParen" checked> 괄호 사용</label>
+      <label class="chip"><input type="checkbox" id="intDiv" checked> 나눗셈은 정수 결과</label>
+
+      <button id="applyBtn">설정 적용</button>
+      <button id="startBtn">문제 시작/재시작</button>
+    </div>
+    <div class="divider"></div>
+    <small>※ 프리셋(쉬움/보통/어려움)을 고르면 범위와 옵션이 자동으로 채워집니다. “사용자 지정”으로 변경하면 자유롭게 수정할 수 있어요.</small>
+  </div>
+
+  <div class="question" id="question">문제를 불러오는 중...</div>
+
+  <input type="number" id="answerInput" class="answer" placeholder="정답 입력" inputmode="numeric" autocomplete="off">
+  <div>
+    <button id="submitBtn" onclick="checkAnswer()">제출</button>
+    <button id="nextBtn" onclick="nextQuestion()">다음 문제</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div id="stats">
+    <p>총 문제 수: <span id="total">0</span></p>
+    <p>맞힌 문제 수: <span id="correct">0</span></p>
+    <p>틀린 문제 수: <span id="wrong">0</span></p>
+  </div>
+
+  <div id="wrongList">
+    <h3>❌ 오답 목록</h3>
+    <div id="wrongItems"><p>아직 오답이 없습니다.</p></div>
+  </div>
+
+  <a href="index.html" class="back">🏠 메인으로 돌아가기</a>
+
+  <script>
+    // ---------- 상태 ----------
+    let exprText = "", correctAnswer = 0;
+    let total = 0, correct = 0, wrong = 0;
+    let wrongProblems = [];
+    let prevKey = "";
+    let answered = false;
+
+    // 설정 상태
+    const settings = {
+      min: 10, max: 99,
+      ops: { '+': true, '-': true, '×': true, '÷': true },
+      terms: 2,
+      useParen: true,
+      intDiv: true
+    };
+
+    // ---------- 유틸 ----------
+    const rint = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+
+    function choice(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
+
+    // 정수 나눗셈 보장용: (b,q) 뽑아 a=b*q 생성
+    function makeDivision(min, max) {
+      const b = rint(2, Math.max(2, Math.min(12, max))); // 작은 범위에서 나눗수
+      const q = rint(2, Math.max(2, Math.min(12, Math.floor(max / Math.max(2, b)))));
+      const a = b * q;
+      if (a < min || a > max) return makeDivision(min, max); // 재귀로 범위 맞추기
+      return { a, b, q };
+    }
+
+    // 괄호가 있을 때 보기 좋은 템플릿 모음(정수 ÷ 보장)
+    function templatesWithParen(min, max, ops, intDiv) {
+      const list = [];
+
+      if (ops['+'] && ops['×']) {
+        list.push(() => {
+          const a = rint(min, max), b = rint(min, max), c = rint(2, Math.min(12, Math.floor(max / 2)));
+          return { text: `(${a} + ${b}) × ${c}`, value: (a + b) * c };
+        });
+      }
+      if (ops['-'] && ops['×']) {
+        list.push(() => {
+          let a = rint(min, max), b = rint(min, max); if (b > a) [a,b]=[b,a];
+          const c = rint(2, Math.min(12, Math.floor(max / 2)));
+          return { text: `(${a} - ${b}) × ${c}`, value: (a - b) * c };
+        });
+      }
+      if (ops['×'] && ops['÷'] && intDiv) {
+        list.push(() => {
+          const a = rint(2, Math.min(12, max)), b = rint(2, Math.min(12, max));
+          const prod = a * b;
+          const { b: c } = makeDivision(2, Math.min(12, prod)); // c는 prod의 약수 범위에서
+          return { text: `(${a} × ${b}) ÷ ${c}`, value: Math.floor(prod / c) };
+        });
+      }
+      if (ops['+'] && ops['÷'] && intDiv) {
+        list.push(() => {
+          const a = rint(min, max), b = rint(min, max);
+          const sum = a + b;
+          // sum의 약수 중 2~12
+          let divisors = [];
+          for (let d = 2; d <= 12; d++) if (sum % d === 0) divisors.push(d);
+          if (divisors.length === 0) { // 못 찾으면 다시 만들기
+            const c = 2; return { text: `(${a} + ${b}) ÷ ${c}`, value: Math.floor(sum / c) };
+          }
+          const c = choice(divisors);
+          return { text: `(${a} + ${b}) ÷ ${c}`, value: sum / c };
+        });
+      }
+      if (ops['-'] && ops['÷'] && intDiv) {
+        list.push(() => {
+          let a = rint(min, max), b = rint(min, max); if (b > a) [a,b]=[b,a];
+          let diff = a - b;
+          if (diff === 0) { a += 1; diff = 1; }
+          // diff의 약수(2~12) 찾기
+          let candidates = [];
+          for (let d = 2; d <= 12; d++) if (diff % d === 0) candidates.push(d);
+          if (candidates.length === 0) {
+            const { a: A, b: B, q } = makeDivision(2, 144);
+            const newDiff = B * q;
+            const newA = newDiff + b;
+            return { text: `(${newA} - ${b}) ÷ ${B}`, value: q };
+          }
+          const c = choice(candidates);
+          return { text: `(${a} - ${b}) ÷ ${c}`, value: diff / c };
+        });
+      }
+
+      return list;
+    }
+
+    // 괄호 없이 2항/3항 생성(÷는 intDiv면 정수 보장)
+    function makeLinearExpr(min, max, ops, terms, intDiv) {
+      const allowedOps = Object.keys(ops).filter(k => ops[k]);
+      if (allowedOps.length === 0) allowedOps.push('+');
+
+      const nums = [];
+      const opsPicked = [];
+
+      // 최소 하나는 숫자 생성
+      function randNumber() { return rint(min, max); }
+
+      if (terms === 2) {
+        let op = choice(allowedOps);
+        let a = randNumber(), b = randNumber();
+        if (op === '−' || op === '-') { op = '−'; if (b > a) [a,b]=[b,a]; }
+        if ((op === '÷' || op === '/') && intDiv) {
+          const made = makeDivision(2, Math.max(12, Math.min(99, max)));
+          // 스케일 조정
+          a = made.a; b = made.b; op = '÷';
+        }
+        const text = `${a} ${opMap(op)} ${b}`;
+        const value = evalValue(a, op, b);
+        return { text, value };
+      } else {
+        // 3항
+        // 형태: a op1 b op2 c (우선순위는 ×, ÷ 우선)
+        let a = randNumber(), b = randNumber(), c = randNumber();
+        let op1 = choice(allowedOps), op2 = choice(allowedOps);
+
+        // 음수 방지
+        if ((op1 === '−' || op1 === '-') && b > a) [a,b]=[b,a];
+        if ((op2 === '−' || op2 === '-') && c > b && !(['×','÷','*','/'].includes(op1))) [b,c]=[c,b];
+
+        // ÷ 정수 보장(가능한 경우)
+        if ((op1 === '÷' || op1 === '/') && intDiv) { const m = makeDivision(2, 99); a = m.a; b = m.b; op1 = '÷'; }
+        if ((op2 === '÷' || op2 === '/') && intDiv) { const m = makeDivision(2, 99); b = m.a; c = m.b; op2 = '÷'; }
+
+        const text = `${a} ${opMap(op1)} ${b} ${opMap(op2)} ${c}`;
+        const value = evalThree(a, op1, b, op2, c);
+        return { text, value };
+      }
+    }
+
+    // 기호 정규화
+    function opMap(op) {
+      if (op === '-') return '−';
+      if (op === '*') return '×';
+      if (op === '/') return '÷';
+      return op;
+    }
+
+    // 2항 평가
+    function evalValue(a, op, b) {
+      if (op === '+' ) return a + b;
+      if (op === '−' || op === '-') return a - b;
+      if (op === '×' || op === '*') return a * b;
+      if (op === '÷' || op === '/') return Math.floor(a / b);
+      return a + b;
+    }
+
+    // 3항 우선순위 평가(×, ÷ 우선)
+    function evalThree(a, op1, b, op2, c) {
+      const muldiv = (op) => (op === '×' || op === '*' || op === '÷' || op === '/');
+      if (muldiv(op1)) {
+        const first = evalValue(a, op1, b);
+        return evalValue(first, op2, c);
+      } else if (muldiv(op2)) {
+        const second = evalValue(b, op2, c);
+        return evalValue(a, op1, second);
+      } else {
+        return evalValue(evalValue(a, op1, b), op2, c);
+      }
+    }
+
+    // ---------- 문제 생성 ----------
+    function createProblem() {
+      const ops = settings.ops;
+      const min = settings.min, max = settings.max;
+      let prob;
+
+      const useParen = settings.useParen;
+      const terms = settings.terms;
+      const intDiv = settings.intDiv;
+
+      let tries = 0;
+      do {
+        tries++;
+        if (useParen) {
+          const candidates = templatesWithParen(min, max, ops, intDiv);
+          if (candidates.length > 0 && Math.random() < 0.7) {
+            const maker = choice(candidates);
+            prob = maker();
+          } else {
+            prob = makeLinearExpr(min, max, ops, terms, intDiv);
+          }
+        } else {
+          prob = makeLinearExpr(min, max, ops, terms, intDiv);
+        }
+        if (tries > 30) break; // 안전장치
+      } while (prob.text === prevKey);
+
+      prevKey = prob.text;
+      return prob;
+    }
+
+    // ---------- UI 동작 ----------
+    function nextQuestion() {
+      const p = createProblem();
+      exprText = p.text;
+      correctAnswer = p.value;
+      answered = false;
+
+      document.getElementById("question").innerText = `${exprText} = ?`;
+      const input = document.getElementById("answerInput");
+      input.value = '';
+      input.focus();
+      document.getElementById("result").innerText = '';
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출';
+    }
+
+    function updateStats() {
+      document.getElementById("total").innerText = total;
+      document.getElementById("correct").innerText = correct;
+      document.getElementById("wrong").innerText = wrong;
+    }
+
+    function updateWrongList() {
+      const container = document.getElementById("wrongItems");
+      if (wrongProblems.length === 0) {
+        container.innerHTML = "<p>아직 오답이 없습니다.</p>";
+        return;
+      }
+      container.innerHTML = "";
+      wrongProblems.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "wrong-item";
+        div.innerText = `${index + 1}. ${item.problem} → 내 답: ${item.user}, 정답: ${item.correct}`;
+        container.appendChild(div);
+      });
+    }
+
+    function checkAnswer() {
+      if (answered) return;
+      const inputEl = document.getElementById("answerInput");
+      const userInput = parseInt(inputEl.value, 10);
+      const submitBtn = document.getElementById("submitBtn");
+
+      if (isNaN(userInput)) {
+        document.getElementById("result").innerText = "⚠️ 숫자를 입력해주세요.";
+        inputEl.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      total++;
+
+      if (userInput === correctAnswer) {
+        correct++;
+        document.getElementById("result").innerText =
+          "✅ 정답이에요! 잘했어요! (Enter를 누르면 다음 문제)";
+      } else {
+        wrong++;
+        wrongProblems.push({ problem: exprText, user: userInput, correct: correctAnswer });
+        document.getElementById("result").innerText =
+          `❌ 오답이에요. 정답은 ${correctAnswer}입니다. (Enter를 누르면 다음 문제)`;
+      }
+
+      answered = true;
+      submitBtn.textContent = '채점 완료';
+      updateStats();
+      updateWrongList();
+    }
+
+    // Enter: 채점 전 → 제출, 채점 후 → 다음 문제
+    const answerInput = document.getElementById("answerInput");
+    answerInput.addEventListener("keydown", (e) => {
+      if (e.isComposing) return;
+      if (e.key === "Enter") {
+        if (answered) nextQuestion();
+        else checkAnswer();
+      }
+    });
+
+    // ---------- 난이도 프리셋 ----------
+    const levelSelect = document.getElementById('levelSelect');
+    const minNum = document.getElementById('minNum');
+    const maxNum = document.getElementById('maxNum');
+    const opPlus = document.getElementById('opPlus');
+    const opMinus = document.getElementById('opMinus');
+    const opMul = document.getElementById('opMul');
+    const opDiv = document.getElementById('opDiv');
+    const useParenChk = document.getElementById('useParen');
+    const intDivChk = document.getElementById('intDiv');
+    const applyBtn = document.getElementById('applyBtn');
+    const startBtn = document.getElementById('startBtn');
+
+    function applyPreset() {
+      const lv = levelSelect.value;
+      if (lv === 'easy') {
+        minNum.value = 1;  maxNum.value = 20;
+        opPlus.checked = true; opMinus.checked = true; opMul.checked = false; opDiv.checked = false;
+        document.querySelector('input[name="terms"][value="2"]').checked = true;
+        useParenChk.checked = false; intDivChk.checked = true;
+      } else if (lv === 'normal') {
+        minNum.value = 5;  maxNum.value = 50;
+        opPlus.checked = true; opMinus.checked = true; opMul.checked = true; opDiv.checked = true;
+        document.querySelector('input[name="terms"][value="2"]').checked = true;
+        useParenChk.checked = true; intDivChk.checked = true;
+      } else if (lv === 'hard') {
+        minNum.value = 10; maxNum.value = 99;
+        opPlus.checked = true; opMinus.checked = true; opMul.checked = true; opDiv.checked = true;
+        document.querySelector('input[name="terms"][value="3"]').checked = true;
+        useParenChk.checked = true; intDivChk.checked = true;
+      } else {
+        // 사용자 지정: 기존 값 유지
+      }
+    }
+
+    levelSelect.addEventListener('change', applyPreset);
+
+    function readSettings() {
+      settings.min = parseInt(minNum.value, 10);
+      settings.max = parseInt(maxNum.value, 10);
+      // 안전 보정
+      if (isNaN(settings.min)) settings.min = 1;
+      if (isNaN(settings.max) || settings.max < settings.min) settings.max = Math.max(9, settings.min + 9);
+
+      settings.ops['+'] = opPlus.checked;
+      settings.ops['−'] = opMinus.checked; // 내부 표기
+      settings.ops['×'] = opMul.checked;
+      settings.ops['÷'] = opDiv.checked;
+
+      settings.terms = parseInt(document.querySelector('input[name="terms"]:checked').value, 10);
+      settings.useParen = useParenChk.checked;
+      settings.intDiv = intDivChk.checked;
+    }
+
+    applyBtn.addEventListener('click', () => {
+      readSettings();
+      alert('설정을 적용했어요! (다음 문제부터 반영됩니다)');
+    });
+
+    startBtn.addEventListener('click', () => {
+      readSettings();
+      // 통계 초기화(원하시면 제거 가능)
+      total = 0; correct = 0; wrong = 0; wrongProblems = []; prevKey = ""; answered = false;
+      updateStats();
+      updateWrongList();
+      nextQuestion();
+    });
+
+    // 초기 구동
+    applyPreset(); // 기본: 보통
+    nextQuestion();
+    updateStats();
+    updateWrongList();
+  </script>
+</body>
+</html>
