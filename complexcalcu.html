@@ -31,7 +31,20 @@
       color: #444;
     }
 
-    .row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; }
+  .row {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(220px, 1fr));
+    gap: 10px 16px;
+    align-items: center;
+  }
+
+  /* 반응형: 화면이 좁아지면 자동으로 2열 → 1열 */
+  @media (max-width: 900px) {
+    .row { grid-template-columns: repeat(2, minmax(220px, 1fr)); }
+  }
+  @media (max-width: 560px) {
+    .row { grid-template-columns: 1fr; }
+  }
     .row > label { font-size: .95em; }
     .row input[type="number"] { width: 90px; padding: 6px 8px; }
     .row input[type="checkbox"] { transform: translateY(1px); }
