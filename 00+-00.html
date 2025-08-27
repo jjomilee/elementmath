@@ -101,10 +101,10 @@
 
   <div class="question" id="question">문제를 불러오는 중...</div>
 
-  <input type="number" id="answerInput" placeholder="정답 입력">
+  <input type="number" id="answerInput" placeholder="정답 입력" inputmode="numeric" autocomplete="off">
   <div>
     <button id="submitBtn" onclick="checkAnswer()">제출</button>
-    <button onclick="nextQuestion()">다음 문제</button>
+    <button id="nextBtn" onclick="nextQuestion()">다음 문제</button>
   </div>
 
   <div id="result"></div>
@@ -129,6 +129,7 @@
     let total = 0, correct = 0, wrong = 0;
     let wrongProblems = [];
     let prevKey = "";
+    let answered = false; // 채점 완료 여부
 
     function generateQuestion() {
       let key;
@@ -141,18 +142,27 @@
           [num1, num2] = [num2, num1]; // 음수 방지
         }
 
-        key = operator === '+' 
-              ? [Math.min(num1, num2), Math.max(num1, num2)].join('+') 
+        key = operator === '+'
+              ? [Math.min(num1, num2), Math.max(num1, num2)].join('+')
               : `${num1}-${num2}`;
       } while (key === prevKey); // 중복 방지
 
       prevKey = key;
       correctAnswer = operator === '+' ? num1 + num2 : num1 - num2;
+    }
+
+    function nextQuestion() {
+      generateQuestion();
+      answered = false;
 
       document.getElementById("question").innerText = `${num1} ${operator} ${num2} = ?`;
-      document.getElementById("answerInput").value = '';
+      const input = document.getElementById("answerInput");
+      input.value = '';
+      input.focus(); // 새 문제에서 바로 입력
       document.getElementById("result").innerText = '';
-      document.getElementById("submitBtn").disabled = false;
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출';
     }
 
     function updateStats() {
@@ -178,11 +188,15 @@
     }
 
     function checkAnswer() {
-      const userInput = parseInt(document.getElementById("answerInput").value);
+      if (answered) return; // 이미 채점된 상태면 무시
+
+      const inputEl = document.getElementById("answerInput");
+      const userInput = parseInt(inputEl.value, 10);
       const submitBtn = document.getElementById("submitBtn");
 
       if (isNaN(userInput)) {
         document.getElementById("result").innerText = "⚠️ 숫자를 입력해주세요.";
+        inputEl.focus();
         return;
       }
 
@@ -191,7 +205,8 @@
 
       if (userInput === correctAnswer) {
         correct++;
-        document.getElementById("result").innerText = "✅ 정답이에요! 잘했어요!";
+        document.getElementById("result").innerText =
+          "✅ 정답이에요! 잘했어요! (Enter를 누르면 다음 문제)";
       } else {
         wrong++;
         wrongProblems.push({
@@ -199,16 +214,25 @@
           user: userInput,
           correct: correctAnswer
         });
-        document.getElementById("result").innerText = `❌ 오답이에요. 정답은 ${correctAnswer}입니다.`;
+        document.getElementById("result").innerText =
+          `❌ 오답이에요. 정답은 ${correctAnswer}입니다. (Enter를 누르면 다음 문제)`;
       }
 
+      answered = true; // 다음 Enter는 다음 문제
+      submitBtn.textContent = '채점 완료';
       updateStats();
       updateWrongList();
     }
 
-    function nextQuestion() {
-      generateQuestion();
-    }
+    // Enter 키: 채점 전이면 checkAnswer(), 채점 후이면 nextQuestion()
+    const answerInput = document.getElementById("answerInput");
+    answerInput.addEventListener("keydown", (e) => {
+      if (e.isComposing) return; // IME 조합 중이면 무시
+      if (e.key === "Enter") {
+        if (answered) nextQuestion();
+        else checkAnswer();
+      }
+    });
 
     // 첫 문제 세팅
     nextQuestion();
