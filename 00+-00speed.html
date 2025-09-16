@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>두 자리 수 덧셈 · 뺄셈 연습 </title>
+  <title>두 자리 수 덧셈 · 뺄셈 연습</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -24,102 +24,137 @@
       background: linear-gradient(to bottom right, var(--bg1), var(--bg2));
       color: var(--text);
       margin: 0;
-      padding: 32px 16px 80px;
+      padding: 20px 12px 64px;
       text-align: center;
     }
 
-    h1 { font-size: 2rem; margin: 0 0 8px; }
+    h1 { font-size: 1.8rem; margin: 0 0 6px; }
     .sub { opacity: .9; margin-top: 4px; font-size: .95rem; }
 
-    .controls { margin: 18px 0 10px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
-
-    input[type="number"]#problemCount {
-      width: 80px;
-      font-size: 1rem;
-      padding: 6px;
-      text-align: center;
-      border-radius: 8px;
-      border: 2px solid #aaa;
+    /* === 상단 컨트롤: 한 줄 유지 === */
+    .controls { 
+      margin: 14px auto 10px; 
+      display: flex; 
+      gap: 10px; 
+      justify-content: center; 
+      align-items: center; 
+      flex-wrap: nowrap; 
+      background: var(--panel); 
+      padding: 10px 12px; 
+      border-radius: 12px; 
+      box-shadow: 0 2px 6px #0002; 
+      max-width: 860px; 
+      overflow-x: auto; 
+      -webkit-overflow-scrolling: touch;
     }
+    .controls > * { flex: 0 0 auto; }
 
-    button {
-      font-size: 1rem;
-      padding: 10px 18px;
-      border-radius: 12px;
-      border: none;
-      background: var(--accent);
-      color: #fff;
-      cursor: pointer;
-      box-shadow: 0 2px 6px #0001;
+    .controls label { font-weight: 700; white-space: nowrap; }
+    #problemCount {
+      width: 80px; text-align: center; font-size: 1rem; padding: 6px 8px;
+      border: 2px solid #aaa; border-radius: 10px; transition: .2s;
+    }
+    #problemCount:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #f57c0026; }
+
+    button { 
+      font-size: .95rem; padding: 8px 14px; border-radius: 10px; border: none; 
+      background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 2px 6px #0001; 
+      transition: background .2s; white-space: nowrap;
     }
     button:hover { background: var(--accent-dim); }
     button:disabled { background: #f6c288; cursor: not-allowed; }
 
-    .status {
-      display: grid; gap: 8px; justify-content: center; margin: 14px 0 20px;
-      grid-template-columns: repeat(2, minmax(160px, 1fr));
+    /* === 상태 바(알약) === */
+    .status { 
+      display: flex; gap: 10px; justify-content: center; align-items: center; 
+      flex-wrap: nowrap; overflow-x: auto; max-width: 860px; margin: 12px auto 16px;
     }
-    .pill {
-      background: var(--panel);
-      border-radius: 999px;
-      padding: 10px 16px;
-      box-shadow: 0 0 8px #ccc;
-      font-weight: 600;
+    .pill { 
+      background: var(--panel); border-radius: 999px; padding: 8px 12px; 
+      box-shadow: 0 0 6px #ccc; font-weight: 700; font-size: .95rem; white-space: nowrap; 
     }
 
     #timer { font-variant-numeric: tabular-nums; }
 
-    .sheet {
-      max-width: 860px; margin: 0 auto; text-align: left;
-      background: #fff;
-      border-radius: 16px; box-shadow: 0 10px 20px #0002; padding: 16px;
+    /* === 문제 시트 === */
+    .sheet { 
+      max-width: 900px; margin: 0 auto; background: #fff; padding: 10px 10px; 
+      border-radius: 14px; box-shadow: 0 8px 18px #0002; text-align: center;
     }
 
-    .row { display: grid; grid-template-columns: 1fr 140px 56px; align-items: center; gap: 12px; padding: 10px 12px; border-bottom: 1px dashed #eee; }
+    /* 각 문제를 모바일에서도 1줄로, 가운데 정렬 */
+    .row {
+      display: inline-flex;           /* 내용 너비만큼 줄이고 */
+      align-items: center;            /* 수직 가운데 */
+      justify-content: center;        /* 수평 가운데 */
+      gap: 10px;                      /* 간격 */
+      padding: 8px 6px;               /* 터치 여백 */
+      border-bottom: 1px dashed #eee; 
+      width: 100%;                    /* 시트 폭 기반 중앙 배치 */
+    }
     .row:last-child { border-bottom: none; }
-    .q { font-size: 1.5rem; color: #222; }
-    .q small { opacity: .6; font-size: .9rem; }
 
-    input[type="number"]:not(#problemCount) {
-      font-size: 1.2rem; width: 100%; text-align: center; padding: 10px 12px;
-      border-radius: 10px; border: 2px solid #aaa; outline: none;
+    .row-inner {                      /* 줄바꿈 방지 래퍼 */
+      display: inline-flex; 
+      align-items: center;
+      gap: 10px;
+      white-space: nowrap;            /* 모바일에서도 한 줄 유지 */
+      margin: 0 auto;
     }
-    input[type="number"]:focus { border-color: var(--accent); box-shadow: 0 0 0 4px #f57c0022; }
 
-    .mark { text-align: center; font-size: 1.3rem; font-weight: 700; }
+    .q { font-size: 1.3rem; color: #222; }
+    .q small { opacity: .6; font-size: .85rem; }
+
+    .ans {
+      width: 110px; max-width: 30vw; text-align: center; font-size: 1.05rem; 
+      padding: 8px 10px; border-radius: 10px; border: 2px solid #aaa; outline: none;
+    }
+    .ans:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #f57c0026; }
+
+    .mark { width: 40px; text-align: center; font-size: 1.2rem; font-weight: 700; }
     .mark.ok { color: var(--ok); }
     .mark.bad { color: var(--bad); }
 
-    #result { font-size: 1.15rem; margin: 16px 0 8px; font-weight: bold; }
+    #result { font-size: 1rem; margin: 12px 0 6px; font-weight: bold; }
 
-    #wrongList { margin-top: 16px; background: var(--wrong-bg); padding: 12px 14px; border-radius: 12px; box-shadow: 0 0 5px #ccc; }
-    #wrongList h3 { margin: 0 0 8px; }
-    .wrong-item { font-size: .98rem; margin: 6px 0; }
+    #wrongList { margin-top: 14px; background: var(--wrong-bg); padding: 10px 12px; border-radius: 10px; box-shadow: 0 0 4px #ccc; max-width: 860px; margin-left:auto; margin-right:auto; }
+    #wrongList h3 { margin: 0 0 6px; font-size: 1rem; }
+    .wrong-item { font-size: .92rem; margin: 4px 0; }
 
-    .footer { margin-top: 24px; }
-    .back { display: inline-block; margin-top: 16px; color: #0077cc; text-decoration: none; }
+    .footer { margin-top: 18px; }
+    .back { display: inline-block; margin-top: 12px; color: #0077cc; text-decoration: none; font-size: .9rem; }
+
+    /* 더 좁은 화면에서 폰트·간격 축소 */
+    @media (max-width: 420px) {
+      h1 { font-size: 1.6rem; }
+      .q { font-size: 1.15rem; }
+      .ans { width: 90px; padding: 6px 8px; font-size: 1rem; }
+      .mark { width: 36px; font-size: 1.1rem; }
+    }
   </style>
 </head>
 <body>
   <h1>🧮 두 자리 수 덧셈 · 뺄셈</h1>
   <div class="sub">원하는 문제 수를 정해 연습하고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
 
+  <!-- 상단 컨트롤: 한 줄 유지 -->
   <div class="controls">
     <label for="problemCount">문제 수:</label>
-    <input type="number" id="problemCount" min="1" max="50" value="10">
+    <input type="number" id="problemCount" min="1" max="50" value="10" />
     <button id="newSetBtn">새 문제 만들기</button>
     <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
     <button id="resetBtn">초기화</button>
   </div>
 
+  <!-- 상태: 2줄이 아닌 한 줄 컨테이너 (가로 스크롤 허용) -->
   <div class="status">
     <div class="pill">문제 수: <strong id="count">0</strong></div>
     <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
     <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
     <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
-    
   </div>
 
+  <!-- 문제 시트 -->
   <div class="sheet" id="sheet" aria-live="polite"></div>
 
   <div id="result"></div>
@@ -210,57 +245,59 @@
       if(first){ first.focus(); }
     }
 
+    function rowEl(p, idx){
+      const row = document.createElement('div');
+      row.className = 'row';
+      const wrap = document.createElement('div');
+      wrap.className = 'row-inner';
+
+      const q = document.createElement('div');
+      q.className = 'q';
+      q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong> <small>= ?</small>`;
+
+      const input = document.createElement('input');
+      input.className = 'ans';
+      input.type = 'number';
+      input.inputMode = 'numeric';
+      input.autocomplete = 'off';
+      input.dataset.index = idx;
+      input.addEventListener('input', handleStart);
+      input.addEventListener('keydown', (e)=> handleEnterAdvance(e, idx));
+
+      const mark = document.createElement('div');
+      mark.className = 'mark';
+      mark.id = `mark-${idx}`;
+
+      wrap.appendChild(q);
+      wrap.appendChild(input);
+      wrap.appendChild(mark);
+      row.appendChild(wrap);
+      return row;
+    }
+
     function renderSheet(){
       sheetEl.innerHTML = '';
       problems.forEach((p, idx)=>{
-        const row = document.createElement('div');
-        row.className = 'row';
-
-        const q = document.createElement('div');
-        q.className = 'q';
-        q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong> <small>= ?</small>`;
-
-        const input = document.createElement('input');
-        input.type = 'number';
-        input.inputMode = 'numeric';
-        input.autocomplete = 'off';
-        input.dataset.index = idx;
-        input.addEventListener('input', handleStart);
-        input.addEventListener('keydown', (e)=> handleEnterAdvance(e, idx));
-
-        const mark = document.createElement('div');
-        mark.className = 'mark';
-        mark.id = `mark-${idx}`;
-
-        row.appendChild(q);
-        row.appendChild(input);
-        row.appendChild(mark);
-        sheetEl.appendChild(row);
+        sheetEl.appendChild(rowEl(p, idx));
       });
     }
 
     function handleStart(){
-      if(!started){
-        started = true;
-        startTimer();
-      }
+      if(!started){ started = true; startTimer(); }
     }
 
     function handleEnterAdvance(e, idx){
       if(e.isComposing) return;
       if(e.key === 'Enter'){
-        const inputs = sheetEl.querySelectorAll('input');
-        if(idx < inputs.length - 1){
-          inputs[idx+1].focus();
-        } else {
-          grade();
-        }
+        const inputs = sheetEl.querySelectorAll('input.ans');
+        if(idx < inputs.length - 1){ inputs[idx+1].focus(); }
+        else { grade(); }
       }
     }
 
     function grade(){
       if(graded) return;
-      const inputs = sheetEl.querySelectorAll('input');
+      const inputs = sheetEl.querySelectorAll('input.ans');
       correct = 0; wrong = 0;
       const wrongListData = [];
 
@@ -316,9 +353,7 @@
     }
 
     function resetAll(){
-      stopTimer();
-      started = false; graded = false;
-      problems = [];
+      stopTimer(); started = false; graded = false; problems = [];
       sheetEl.innerHTML = '';
       countEl.textContent = '0';
       correctEl.textContent = '0';
