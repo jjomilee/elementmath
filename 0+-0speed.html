@@ -182,9 +182,208 @@
     <a href="index.html" class="back">🏠 메인으로 돌아가기</a>
   </div>
 
-  <!-- JavaScript 부분은 그대로 유지 -->
   <script>
-    // 기존 JS 코드 동일
+    let problems = []; // { a, b, op, ans }
+    let started = false, graded = false;
+    let startTime = 0, timerId = null;
+    let correct = 0, wrong = 0;
+
+    const sheetEl = document.getElementById('sheet');
+    const gradeBtn = document.getElementById('gradeBtn');
+    const newSetBtn = document.getElementById('newSetBtn');
+    const resetBtn = document.getElementById('resetBtn');
+    const problemCountEl = document.getElementById('problemCount');
+
+    const countEl = document.getElementById('count');
+    const correctEl = document.getElementById('correct');
+    const wrongEl = document.getElementById('wrong');
+    const timerEl = document.getElementById('timer');
+    const resultEl = document.getElementById('result');
+    const wrongList = document.getElementById('wrongList');
+    const wrongItems = document.getElementById('wrongItems');
+
+    function fmt(ms){
+      const total = Math.floor(ms);
+      const m = Math.floor(total / 60000);
+      const s = Math.floor((total % 60000) / 1000);
+      const d = Math.floor((total % 1000) / 100);
+      return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${d}`;
+    }
+
+    function startTimer(){
+      startTime = Date.now();
+      timerId = setInterval(()=>{
+        timerEl.textContent = fmt(Date.now() - startTime);
+      }, 100);
+    }
+    function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
+
+    function randInt1to9(){ return Math.floor(Math.random()*9)+1; }
+
+    function makeProblem(){
+      let a = randInt1to9();
+      let b = randInt1to9();
+      const op = Math.random() < 0.5 ? '+' : '-';
+      if(op === '-' && b > a) [a,b] = [b,a];
+      const ans = op === '+' ? a + b : a - b;
+      return { a, b, op, ans };
+    }
+
+    function uniqueKey(p){
+      return p.op === '+' ? `${Math.min(p.a,p.b)}+${Math.max(p.a,p.b)}` : `${p.a}-${p.b}`;
+    }
+
+    function generateSet(){
+      let n = parseInt(problemCountEl.value, 10);
+      if(isNaN(n) || n < 1) n = 10;
+      if(n > 50) n = 50;
+
+      const seen = new Set();
+      problems = [];
+      while(problems.length < n){
+        const p = makeProblem();
+        const k = uniqueKey(p);
+        if(!seen.has(k)) { seen.add(k); problems.push(p); }
+      }
+      correct = 0; wrong = 0; graded = false; started = false;
+      countEl.textContent = problems.length;
+      correctEl.textContent = correct;
+      wrongEl.textContent = wrong;
+      timerEl.textContent = '00:00.0';
+      renderSheet();
+      resultEl.textContent = '';
+      wrongList.hidden = true;
+      wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
+      gradeBtn.disabled = false;
+      const first = sheetEl.querySelector('input');
+      if(first){ first.focus(); }
+    }
+
+    function renderSheet(){
+      sheetEl.innerHTML = '';
+      problems.forEach((p, idx)=>{
+        const row = document.createElement('div');
+        row.className = 'row';
+
+        const q = document.createElement('div');
+        q.className = 'q';
+        q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong> <small>= ?</small>`;
+
+        const input = document.createElement('input');
+        input.type = 'number';
+        input.inputMode = 'numeric';
+        input.autocomplete = 'off';
+        input.dataset.index = idx;
+        input.addEventListener('input', handleStart);
+        input.addEventListener('keydown', (e)=> handleEnterAdvance(e, idx));
+
+        const mark = document.createElement('div');
+        mark.className = 'mark';
+        mark.id = `mark-${idx}`;
+
+        row.appendChild(q);
+        row.appendChild(input);
+        row.appendChild(mark);
+        sheetEl.appendChild(row);
+      });
+    }
+
+    function handleStart(){
+      if(!started){
+        started = true;
+        startTimer();
+      }
+    }
+
+    function handleEnterAdvance(e, idx){
+      if(e.isComposing) return;
+      if(e.key === 'Enter'){
+        const inputs = sheetEl.querySelectorAll('input');
+        if(idx < inputs.length - 1){
+          inputs[idx+1].focus();
+        } else {
+          grade();
+        }
+      }
+    }
+
+    function grade(){
+      if(graded) return;
+      const inputs = sheetEl.querySelectorAll('input');
+      correct = 0; wrong = 0;
+      const wrongListData = [];
+
+      inputs.forEach((inp, i)=>{
+        const val = Number(inp.value);
+        const p = problems[i];
+        const m = document.getElementById(`mark-${i}`);
+        if(Number.isNaN(val)){
+          m.textContent = '⚠';
+          m.title = '숫자를 입력하세요';
+          m.className = 'mark bad';
+          wrong++;
+          wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: '미입력', ans: p.ans });
+          return;
+        }
+        if(val === p.ans){
+          m.textContent = '✓';
+          m.className = 'mark ok';
+          correct++;
+        } else {
+          m.textContent = '✗';
+          m.className = 'mark bad';
+          wrong++;
+          wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: val, ans: p.ans });
+        }
+        inp.disabled = true;
+      });
+
+      stopTimer();
+      const elapsed = Date.now() - startTime;
+      timerEl.textContent = fmt(elapsed);
+      graded = true;
+
+      correctEl.textContent = correct;
+      wrongEl.textContent = wrong;
+
+      resultEl.textContent = `결과: ${problems.length}문제 중 ${correct}개 정답, ${wrong}개 오답 · 시간 ${fmt(elapsed)}`;
+
+      wrongList.hidden = wrongListData.length === 0;
+      if(wrongListData.length === 0){
+        wrongItems.innerHTML = '<p>오답이 없어요. 훌륭해요! 🎉</p>';
+      } else {
+        wrongItems.innerHTML = '';
+        wrongListData.forEach(item=>{
+          const div = document.createElement('div');
+          div.className = 'wrong-item';
+          div.textContent = `${item.idx}. ${item.text} → 내 답: ${item.user}, 정답: ${item.ans}`;
+          wrongItems.appendChild(div);
+        });
+      }
+
+      gradeBtn.disabled = true;
+    }
+
+    function resetAll(){
+      stopTimer();
+      started = false; graded = false;
+      problems = [];
+      sheetEl.innerHTML = '';
+      countEl.textContent = '0';
+      correctEl.textContent = '0';
+      wrongEl.textContent = '0';
+      timerEl.textContent = '00:00.0';
+      resultEl.textContent = '';
+      wrongList.hidden = true;
+      wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
+      gradeBtn.disabled = true;
+    }
+
+    newSetBtn.addEventListener('click', generateSet);
+    gradeBtn.addEventListener('click', grade);
+    resetBtn.addEventListener('click', resetAll);
+
+    generateSet();
   </script>
 </body>
 </html>
