@@ -2,17 +2,17 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>한 자리 수 덧셈 · 뺄셈 연습</title>
+  <title>덧셈 · 뺄셈 연습</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --bg1: #fdfd96;
-      --bg2: #ffb347;
-      --accent: #59c3c3;
-      --accent-dim: #45b0b0;
+      --bg1: #fceabb;
+      --bg2: #f8b500;
+      --accent: #f57c00;
+      --accent-dim: #e65100;
       --text: #333;
       --panel: #ffffffcc;
-      --panel-strong: #fffce6;
+      --panel-strong: #fff8e6;
       --wrong-bg: #fff4e6;
       --ok: #0a8a0a;
       --bad: #c0392b;
@@ -32,6 +32,7 @@
     h1 { font-size: 1.8rem; margin: 0 0 6px; }
     .sub { opacity: .9; margin-top: 4px; font-size: .95rem; }
 
+    /* ===== 공통 박스 ===== */
     .box {
       max-width: 940px;
       margin: 14px auto;
@@ -42,10 +43,11 @@
     }
     .box.header { background: var(--panel-strong); }
 
+    /* ===== 바(한 줄, 가로 스크롤 허용) ===== */
     .bar {
       margin: 6px auto;
       display: flex;
-      flex-wrap: nowrap;
+      flex-wrap: nowrap;          /* 한 줄 유지 */
       gap: 10px;
       align-items: center;
       justify-content: center;
@@ -53,27 +55,43 @@
       padding: 10px 12px;
       border-radius: 10px;
       box-shadow: 0 2px 6px #0001;
-      overflow-x: auto;
+      overflow-x: auto;           /* 좁을 때 스크롤 */
       -webkit-overflow-scrolling: touch;
     }
     .bar > * { flex: 0 0 auto; white-space: nowrap; }
 
     .label { font-weight: 700; }
 
+    /* 입력 */
     #problemCount {
       width: 80px; text-align: center; font-size: 1rem; padding: 6px 8px;
       border: 2px solid #aaa; border-radius: 10px; transition: .2s;
     }
-    #problemCount:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #59c3c322; }
+    #problemCount:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #f57c0026; }
 
+    /* 버튼 */
     button {
       font-size: .95rem; padding: 8px 14px; border-radius: 10px; border: none;
       background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 2px 6px #0001;
       transition: background .2s; white-space: nowrap;
     }
     button:hover { background: var(--accent-dim); }
-    button:disabled { background: #b0cfcf; cursor: not-allowed; }
+    button:disabled { background: #f6c288; cursor: not-allowed; }
 
+    /* ===== 자리수 토글(세그먼트) ===== */
+    .seg {
+      display: inline-flex; gap: 0; border-radius: 10px; overflow: hidden; border: 2px solid #ddd;
+    }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg label {
+      padding: 8px 12px; font-weight: 700; cursor: pointer; user-select: none;
+      background: #fafafa; border-right: 1px solid #ddd; transition: background .15s, color .15s;
+    }
+    .seg label:last-child { border-right: 0; }
+    .seg input:checked + label { background: var(--accent); color: #fff; }
+    .seg label:hover { background: #f1f1f1; }
+
+    /* 상태 표시 알약 */
     .pill {
       background: var(--panel); border-radius: 999px; padding: 8px 12px;
       box-shadow: 0 0 6px #ccc; font-weight: 700; font-size: .95rem; white-space: nowrap;
@@ -81,8 +99,9 @@
 
     #timer { font-variant-numeric: tabular-nums; }
 
+    /* ===== 문제 시트: 모바일에서도 1줄 유지 ===== */
     .sheet {
-      max-width: 940px; margin: 0 auto; background: #fff; padding: 10px;
+      max-width: 940px; margin: 0 auto; background: #fff; padding: 10px 10px;
       border-radius: 14px; box-shadow: 0 8px 18px #0002; text-align: center;
     }
     .row {
@@ -95,8 +114,10 @@
 
     .q { font-size: 1.3rem; color: #222; }
 
-    .ans { width: 90px; max-width: 30vw; text-align: center; font-size: 1.05rem; padding: 8px 10px; border-radius: 10px; border: 2px solid #aaa; outline: none; }
-    .ans:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #59c3c322; }
+    .eq { font-size: 1.2rem; font-weight: 700; margin: 0 4px; } /* 등호 스타일 */
+
+    .ans { width: 110px; max-width: 30vw; text-align: center; font-size: 1.05rem; padding: 8px 10px; border-radius: 10px; border: 2px solid #aaa; outline: none; }
+    .ans:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #f57c0026; }
 
     .mark { width: 40px; text-align: center; font-size: 1.2rem; font-weight: 700; }
     .mark.ok { color: var(--ok); }
@@ -114,40 +135,54 @@
     @media (max-width: 420px) {
       h1 { font-size: 1.6rem; }
       .q { font-size: 1.15rem; }
-      .ans { width: 70px; padding: 6px 8px; font-size: 1rem; }
-      .mark { width: 32px; font-size: 1.1rem; }
+      .ans { width: 90px; padding: 6px 8px; font-size: 1rem; }
+      .mark { width: 36px; font-size: 1.1rem; }
     }
   </style>
 </head>
 <body>
-  <h1>🍎 한 자리 수 덧셈 · 뺄셈</h1>
-  <div class="sub">원하는 문제 수를 정해 연습하고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
+  <h1>🧮 덧셈 · 뺄셈 연습</h1>
+  <div class="sub">자리수를 선택하고 문제 세트를 만든 뒤, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
 
-  <!-- 상단 박스 -->
+  <!-- 상단 박스: 설정/동작 -->
   <div class="box header controls-box">
+    <!-- 줄1: 자리수 토글 + 문제수 + 초기화 -->
     <div class="bar" id="bar-setup">
+      <span class="label">자리수</span>
+      <div class="seg" role="tablist" aria-label="자리수 선택">
+        <input type="radio" name="digits" id="dig1" value="1">
+        <label for="dig1">1자리</label>
+        <input type="radio" name="digits" id="dig2" value="2" checked>
+        <label for="dig2">2자리</label>
+        <input type="radio" name="digits" id="dig3" value="3">
+        <label for="dig3">3자리</label>
+      </div>
       <span class="label">문제 수</span>
       <input type="number" id="problemCount" min="1" max="50" value="10" />
       <button id="resetBtn">초기화</button>
     </div>
+    <!-- 줄2: 새 문제 만들기 + 채점하기 -->
     <div class="bar" id="bar-actions">
       <button id="newSetBtn">새 문제 만들기</button>
       <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
     </div>
   </div>
 
-  <!-- 하단 박스 -->
+  <!-- 하단 박스: 상태 표시 -->
   <div class="box status-box">
+    <!-- 줄3: 문제 수 + 시간 -->
     <div class="bar" id="bar-count-time">
       <div class="pill">문제 수: <strong id="count">0</strong></div>
       <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
     </div>
+    <!-- 줄4: 맞힌 개수 + 틀린 개수 -->
     <div class="bar" id="bar-score">
       <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
       <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
     </div>
   </div>
 
+  <!-- 문제 시트 -->
   <div class="sheet" id="sheet" aria-live="polite"></div>
 
   <div id="result"></div>
@@ -162,11 +197,14 @@
   </div>
 
   <script>
-    let problems = [];
+    // ===== 상태 변수 =====
+    let problems = []; // { a, b, op, ans }
     let started = false, graded = false;
     let startTime = 0, timerId = null;
     let correct = 0, wrong = 0;
+    let selectedDigits = 2; // 기본값: 2자리
 
+    // ===== 엘리먼트 =====
     const sheetEl = document.getElementById('sheet');
     const gradeBtn = document.getElementById('gradeBtn');
     const newSetBtn = document.getElementById('newSetBtn');
@@ -181,6 +219,9 @@
     const wrongList = document.getElementById('wrongList');
     const wrongItems = document.getElementById('wrongItems');
 
+    const digRadios = Array.from(document.querySelectorAll('input[name="digits"]'));
+
+    // ===== 유틸 =====
     function fmt(ms){
       const total = Math.floor(ms);
       const m = Math.floor(total / 60000);
@@ -195,13 +236,17 @@
     }
     function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
 
-    function randInt1to9(){ return Math.floor(Math.random()*9)+1; }
+    function randByDigits(d){
+      const min = d === 1 ? 1 : Math.pow(10, d-1);
+      const max = Math.pow(10, d) - 1;
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
     function makeProblem(){
-      let a = randInt1to9();
-      let b = randInt1to9();
+      let a = randByDigits(selectedDigits);
+      let b = randByDigits(selectedDigits);
       const op = Math.random() < 0.5 ? '+' : '-';
-      if(op === '-' && b > a) [a,b] = [b,a];
+      if(op === '-' && b > a) [a,b] = [b,a]; // 음수 방지
       const ans = op === '+' ? a + b : a - b;
       return { a, b, op, ans };
     }
@@ -210,6 +255,7 @@
       return p.op === '+' ? `${Math.min(p.a,p.b)}+${Math.max(p.a,p.b)}` : `${p.a}-${p.b}`;
     }
 
+    // ===== 세트 생성/렌더 =====
     function generateSet(){
       let n = parseInt(problemCountEl.value, 10);
       if(isNaN(n) || n < 1) n = 10;
@@ -244,7 +290,12 @@
 
       const q = document.createElement('div');
       q.className = 'q';
+      // 문제 뒤에 물음표 없음, 등호 추가
       q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong>`;
+
+      const eq = document.createElement('span');
+      eq.className = 'eq';
+      eq.textContent = '=';
 
       const input = document.createElement('input');
       input.className = 'ans';
@@ -260,6 +311,7 @@
       mark.id = `mark-${idx}`;
 
       wrap.appendChild(q);
+      wrap.appendChild(eq);     // 등호 위치
       wrap.appendChild(input);
       wrap.appendChild(mark);
       row.appendChild(wrap);
@@ -271,6 +323,7 @@
       problems.forEach((p, idx)=>{ sheetEl.appendChild(rowEl(p, idx)); });
     }
 
+    // ===== 흐름 제어 =====
     function handleStart(){ if(!started){ started = true; startTimer(); } }
 
     function handleEnterAdvance(e, idx){
@@ -341,10 +394,16 @@
       gradeBtn.disabled = true;
     }
 
+    // 자리수 토글 핸들링: 값만 갱신(세트 생성은 '새 문제 만들기'로)
+    digRadios.forEach(r => r.addEventListener('change', (e)=>{
+      selectedDigits = Number(e.target.value) || 2;
+    }));
+
     newSetBtn.addEventListener('click', generateSet);
     gradeBtn.addEventListener('click', grade);
     resetBtn.addEventListener('click', resetAll);
 
+    // 초기 세트 생성(기본 2자리)
     generateSet();
   </script>
 </body>
