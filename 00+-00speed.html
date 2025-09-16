@@ -31,25 +31,26 @@
     h1 { font-size: 1.8rem; margin: 0 0 6px; }
     .sub { opacity: .9; margin-top: 4px; font-size: .95rem; }
 
-    /* === 상단 컨트롤: 한 줄 유지 === */
-    .controls { 
-      margin: 14px auto 10px; 
-      display: flex; 
-      gap: 10px; 
-      justify-content: center; 
-      align-items: center; 
-      flex-wrap: nowrap; 
-      background: var(--panel); 
-      padding: 10px 12px; 
-      border-radius: 12px; 
-      box-shadow: 0 2px 6px #0002; 
-      max-width: 860px; 
-      overflow-x: auto; 
+    /* === 바(한 줄 고정, 가로 스크롤 허용) === */
+    .bar {
+      margin: 12px auto 8px;
+      display: flex;
+      flex-wrap: nowrap;          /* 한 줄 유지 */
+      gap: 10px;
+      align-items: center;
+      justify-content: center;
+      background: var(--panel);
+      padding: 10px 12px;
+      border-radius: 12px;
+      box-shadow: 0 2px 6px #0002;
+      max-width: 860px;
+      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
-    .controls > * { flex: 0 0 auto; }
+    .bar > * { flex: 0 0 auto; white-space: nowrap; }
 
-    .controls label { font-weight: 700; white-space: nowrap; }
+    .label { font-weight: 700; }
+
     #problemCount {
       width: 80px; text-align: center; font-size: 1rem; padding: 6px 8px;
       border: 2px solid #aaa; border-radius: 10px; transition: .2s;
@@ -64,11 +65,6 @@
     button:hover { background: var(--accent-dim); }
     button:disabled { background: #f6c288; cursor: not-allowed; }
 
-    /* === 상태 바(알약) === */
-    .status { 
-      display: flex; gap: 10px; justify-content: center; align-items: center; 
-      flex-wrap: nowrap; overflow-x: auto; max-width: 860px; margin: 12px auto 16px;
-    }
     .pill { 
       background: var(--panel); border-radius: 999px; padding: 8px 12px; 
       box-shadow: 0 0 6px #ccc; font-weight: 700; font-size: .95rem; white-space: nowrap; 
@@ -76,39 +72,23 @@
 
     #timer { font-variant-numeric: tabular-nums; }
 
-    /* === 문제 시트 === */
+    /* === 문제 시트: 모바일에서도 1줄 유지 === */
     .sheet { 
       max-width: 900px; margin: 0 auto; background: #fff; padding: 10px 10px; 
       border-radius: 14px; box-shadow: 0 8px 18px #0002; text-align: center;
     }
-
-    /* 각 문제를 모바일에서도 1줄로, 가운데 정렬 */
     .row {
-      display: inline-flex;           /* 내용 너비만큼 줄이고 */
-      align-items: center;            /* 수직 가운데 */
-      justify-content: center;        /* 수평 가운데 */
-      gap: 10px;                      /* 간격 */
-      padding: 8px 6px;               /* 터치 여백 */
-      border-bottom: 1px dashed #eee; 
-      width: 100%;                    /* 시트 폭 기반 중앙 배치 */
+      display: inline-flex;
+      align-items: center; justify-content: center;
+      gap: 10px; padding: 8px 6px; border-bottom: 1px dashed #eee; width: 100%;
     }
     .row:last-child { border-bottom: none; }
-
-    .row-inner {                      /* 줄바꿈 방지 래퍼 */
-      display: inline-flex; 
-      align-items: center;
-      gap: 10px;
-      white-space: nowrap;            /* 모바일에서도 한 줄 유지 */
-      margin: 0 auto;
-    }
+    .row-inner { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; margin: 0 auto; }
 
     .q { font-size: 1.3rem; color: #222; }
     .q small { opacity: .6; font-size: .85rem; }
 
-    .ans {
-      width: 110px; max-width: 30vw; text-align: center; font-size: 1.05rem; 
-      padding: 8px 10px; border-radius: 10px; border: 2px solid #aaa; outline: none;
-    }
+    .ans { width: 110px; max-width: 30vw; text-align: center; font-size: 1.05rem; padding: 8px 10px; border-radius: 10px; border: 2px solid #aaa; outline: none; }
     .ans:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #f57c0026; }
 
     .mark { width: 40px; text-align: center; font-size: 1.2rem; font-weight: 700; }
@@ -124,7 +104,6 @@
     .footer { margin-top: 18px; }
     .back { display: inline-block; margin-top: 12px; color: #0077cc; text-decoration: none; font-size: .9rem; }
 
-    /* 더 좁은 화면에서 폰트·간격 축소 */
     @media (max-width: 420px) {
       h1 { font-size: 1.6rem; }
       .q { font-size: 1.15rem; }
@@ -137,19 +116,27 @@
   <h1>🧮 두 자리 수 덧셈 · 뺄셈</h1>
   <div class="sub">원하는 문제 수를 정해 연습하고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
 
-  <!-- 상단 컨트롤: 한 줄 유지 -->
-  <div class="controls">
-    <label for="problemCount">문제 수:</label>
-    <input type="number" id="problemCount" min="1" max="50" value="10" /><br>
-    <button id="newSetBtn">새 문제 만들기</button>
-    <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
+  <!-- 윗줄: 문제수 설정 + 초기화 -->
+  <div class="bar" id="bar-setup">
+    <span class="label">문제 수</span>
+    <input type="number" id="problemCount" min="1" max="50" value="10" />
     <button id="resetBtn">초기화</button>
   </div>
 
-  <!-- 상태: 2줄이 아닌 한 줄 컨테이너 (가로 스크롤 허용) -->
-  <div class="status">
+  <!-- 둘째 줄: 새 문제 만들기 + 채점하기 -->
+  <div class="bar" id="bar-actions">
+    <button id="newSetBtn">새 문제 만들기</button>
+    <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
+  </div>
+
+  <!-- 셋째 줄: 문제 수 + 시간 -->
+  <div class="bar" id="bar-count-time">
     <div class="pill">문제 수: <strong id="count">0</strong></div>
-    <div class="pill">시간: <strong id="timer">00:00.0</strong></div><br>
+    <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
+  </div>
+
+  <!-- 넷째 줄: 맞힌 개수 + 틀린 개수 -->
+  <div class="bar" id="bar-score">
     <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
     <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
   </div>
@@ -198,9 +185,7 @@
 
     function startTimer(){
       startTime = Date.now();
-      timerId = setInterval(()=>{
-        timerEl.textContent = fmt(Date.now() - startTime);
-      }, 100);
+      timerId = setInterval(()=>{ timerEl.textContent = fmt(Date.now() - startTime); }, 100);
     }
     function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
 
@@ -277,14 +262,10 @@
 
     function renderSheet(){
       sheetEl.innerHTML = '';
-      problems.forEach((p, idx)=>{
-        sheetEl.appendChild(rowEl(p, idx));
-      });
+      problems.forEach((p, idx)=>{ sheetEl.appendChild(rowEl(p, idx)); });
     }
 
-    function handleStart(){
-      if(!started){ started = true; startTimer(); }
-    }
+    function handleStart(){ if(!started){ started = true; startTimer(); } }
 
     function handleEnterAdvance(e, idx){
       if(e.isComposing) return;
@@ -306,23 +287,12 @@
         const p = problems[i];
         const m = document.getElementById(`mark-${i}`);
         if(Number.isNaN(val)){
-          m.textContent = '⚠';
-          m.title = '숫자를 입력하세요';
-          m.className = 'mark bad';
-          wrong++;
-          wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: '미입력', ans: p.ans });
+          m.textContent = '⚠'; m.title = '숫자를 입력하세요'; m.className = 'mark bad';
+          wrong++; wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: '미입력', ans: p.ans });
           return;
         }
-        if(val === p.ans){
-          m.textContent = '✓';
-          m.className = 'mark ok';
-          correct++;
-        } else {
-          m.textContent = '✗';
-          m.className = 'mark bad';
-          wrong++;
-          wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: val, ans: p.ans });
-        }
+        if(val === p.ans){ m.textContent = '✓'; m.className = 'mark ok'; correct++; }
+        else { m.textContent = '✗'; m.className = 'mark bad'; wrong++; wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: val, ans: p.ans }); }
         inp.disabled = true;
       });
 
