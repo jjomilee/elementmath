@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>곱셈 연습 </title>
+  <title>곱셈 연습</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -74,37 +74,54 @@
     button:hover { background: var(--accent-dim); }
     button:disabled { background: #a7d7d3; cursor: not-allowed; }
 
-    /* === 자리수 선택 (가로 배치) === */
+    /* === 자리수 선택 (가로 배치 + 타이틀 왼쪽) === */
     .chooser-wrap {
       display: flex;
       gap: 16px;
       flex-wrap: wrap;
       justify-content: center;
+      width: 100%;
     }
     .col {
       background: #fff;
       border-radius: 10px;
       box-shadow: 0 2px 6px #0001;
       padding: 10px;
-      min-width: 200px;
+      min-width: 260px;
     }
-    .col-title { font-weight: 800; margin-bottom: 8px; }
+    .col-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .col-title {
+      font-weight: 800;
+      min-width: 80px;   /* 타이틀 폭 고정 */
+      text-align: right; /* 타이틀 오른쪽 정렬 */
+    }
+    /* 가로로 나란히 + 좁을 때는 가로 스크롤 */
     .grid {
-      display: grid;
-      grid-template-columns: repeat(3, 1fr); /* 가로 3개 */
+      display: flex;
+      align-items: center;
       gap: 8px;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
     }
     .cell {
       position: relative;
       border: 2px solid var(--border);
       border-radius: 10px;
       overflow: hidden;
+      flex: 0 0 auto;      /* 줄바꿈되지 않도록 */
+      min-width: 82px;     /* 버튼 최소 폭 */
+      text-align: center;
     }
     .cell input { position: absolute; inset: 0; opacity: 0; }
     .cell label {
-      display: block; padding: 8px 0;
+      display: block; padding: 8px 10px;
       font-weight: 800; cursor: pointer;
     }
+    .cell:hover { border-color: #b5d3d1; }
     .cell input:checked + label {
       background: var(--accent); color: #fff;
     }
@@ -166,33 +183,35 @@
       margin-left: auto; margin-right: auto;
     }
     .wrong-item { font-size: .92rem; margin: 4px 0; }
-
-    @media (max-width: 420px) {
-      .grid { grid-template-columns: 1fr; } /* 모바일에서는 세로 */
-    }
   </style>
 </head>
 <body>
   <h1>✖️ 곱셈 연습</h1>
-  <div class="sub">곱하는 수를 선택하고 문제를 만드세요.</div>
+  <div class="sub">앞자리수/뒤자리수를 선택하고 문제를 만드세요.</div>
 
   <div class="box header">
     <div class="bar">
       <div class="chooser-wrap">
-        <div class="col">
-          <div class="col-title">앞자리수</div>
-          <div class="grid">
-            <div class="cell"><input type="radio" name="digitsA" id="a1" value="1" checked><label for="a1">1자리</label></div>
-            <div class="cell"><input type="radio" name="digitsA" id="a2" value="2"><label for="a2">2자리</label></div>
-            <div class="cell"><input type="radio" name="digitsA" id="a3" value="3"><label for="a3">3자리</label></div>
+        <!-- 앞자리수 -->
+        <div class="col" aria-labelledby="colA-title">
+          <div class="col-row">
+            <div class="col-title" id="colA-title">앞자리수</div>
+            <div class="grid" role="radiogroup" aria-label="앞자리수 선택">
+              <div class="cell"><input type="radio" name="digitsA" id="a1" value="1" checked><label for="a1">1자리</label></div>
+              <div class="cell"><input type="radio" name="digitsA" id="a2" value="2"><label for="a2">2자리</label></div>
+              <div class="cell"><input type="radio" name="digitsA" id="a3" value="3"><label for="a3">3자리</label></div>
+            </div>
           </div>
         </div>
-        <div class="col">
-          <div class="col-title">뒤자리수</div>
-          <div class="grid">
-            <div class="cell"><input type="radio" name="digitsB" id="b1" value="1" checked><label for="b1">1자리</label></div>
-            <div class="cell"><input type="radio" name="digitsB" id="b2" value="2"><label for="b2">2자리</label></div>
-            <div class="cell"><input type="radio" name="digitsB" id="b3" value="3"><label for="b3">3자리</label></div>
+        <!-- 뒤자리수 -->
+        <div class="col" aria-labelledby="colB-title">
+          <div class="col-row">
+            <div class="col-title" id="colB-title">뒤자리수</div>
+            <div class="grid" role="radiogroup" aria-label="뒤자리수 선택">
+              <div class="cell"><input type="radio" name="digitsB" id="b1" value="1" checked><label for="b1">1자리</label></div>
+              <div class="cell"><input type="radio" name="digitsB" id="b2" value="2"><label for="b2">2자리</label></div>
+              <div class="cell"><input type="radio" name="digitsB" id="b3" value="3"><label for="b3">3자리</label></div>
+            </div>
           </div>
         </div>
       </div>
@@ -251,65 +270,149 @@
       const d = Math.floor((total%1000)/100);
       return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${d}`;
     }
-    function startTimer(){ startTime = Date.now(); timerId=setInterval(()=>{timerEl.textContent=fmt(Date.now()-startTime)},100);}
-    function stopTimer(){ if(timerId){clearInterval(timerId); timerId=null;}}
+    function startTimer(){
+      startTime = Date.now();
+      timerId = setInterval(()=>{ timerEl.textContent = fmt(Date.now() - startTime); }, 100);
+    }
+    function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
 
-    function randByDigits(d){const min=d===1?1:Math.pow(10,d-1);const max=Math.pow(10,d)-1;return Math.floor(Math.random()*(max-min+1))+min;}
-    function makeProblem(){const a=randByDigits(digitsA);const b=randByDigits(digitsB);return {a,b,op:'×',ans:a*b};}
-    function uniqueKey(p){return `${Math.min(p.a,p.b)}×${Math.max(p.a,p.b)}`;}
+    function randByDigits(d){
+      const min = d === 1 ? 1 : Math.pow(10, d-1);
+      const max = Math.pow(10, d) - 1;
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+    function makeProblem(){
+      const a = randByDigits(digitsA);
+      const b = randByDigits(digitsB);
+      return { a, b, op: '×', ans: a * b };
+    }
+    function uniqueKey(p){
+      return `${Math.min(p.a,p.b)}×${Math.max(p.a,p.b)}`;
+    }
 
     function generateSet(){
-      let n=parseInt(problemCountEl.value,10); if(isNaN(n)||n<1) n=10; if(n>50) n=50;
-      const seen=new Set(); problems=[]; while(problems.length<n){const p=makeProblem();const k=uniqueKey(p);if(!seen.has(k)){seen.add(k);problems.push(p);}}
-      correct=0;wrong=0;graded=false;started=false;
-      countEl.textContent=problems.length;correctEl.textContent=correct;wrongEl.textContent=wrong;timerEl.textContent='00:00.0';
-      renderSheet(); resultEl.textContent=''; wrongList.hidden=true; wrongItems.innerHTML='<p>아직 오답이 없습니다.</p>';
-      gradeBtn.disabled=false;
-      const first=sheetEl.querySelector('input.ans'); if(first){first.focus();}
+      let n = parseInt(problemCountEl.value, 10);
+      if(isNaN(n) || n < 1) n = 10;
+      if(n > 50) n = 50;
+
+      const seen = new Set();
+      problems = [];
+      while(problems.length < n){
+        const p = makeProblem();
+        const k = uniqueKey(p);
+        if(!seen.has(k)) { seen.add(k); problems.push(p); }
+      }
+      correct = 0; wrong = 0; graded = false; started = false;
+      countEl.textContent = problems.length;
+      correctEl.textContent = correct;
+      wrongEl.textContent = wrong;
+      timerEl.textContent = '00:00.0';
+      renderSheet();
+      resultEl.textContent = '';
+      wrongList.hidden = true;
+      wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
+      gradeBtn.disabled = false;
+
+      const first = sheetEl.querySelector('input.ans');
+      if(first){ first.focus(); }
     }
 
     function rowEl(p, idx){
-      const row=document.createElement('div');row.className='row';
-      const wrap=document.createElement('div');wrap.className='row-inner';
-      const q=document.createElement('div');q.className='q';q.innerHTML=`${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong>`;
-      const eq=document.createElement('span');eq.className='eq';eq.textContent='=';
-      const input=document.createElement('input');input.className='ans';input.type='number';input.inputMode='numeric';input.autocomplete='off';input.dataset.index=idx;
-      input.addEventListener('input',handleStart);input.addEventListener('keydown',e=>handleEnterAdvance(e,idx));
-      const mark=document.createElement('div');mark.className='mark';mark.id=`mark-${idx}`;
-      wrap.appendChild(q);wrap.appendChild(eq);wrap.appendChild(input);wrap.appendChild(mark);row.appendChild(wrap);
+      const row = document.createElement('div'); row.className = 'row';
+      const wrap = document.createElement('div'); wrap.className = 'row-inner';
+
+      const q = document.createElement('div'); q.className = 'q';
+      q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong>`;
+
+      const eq = document.createElement('span'); eq.className = 'eq'; eq.textContent = '=';
+
+      const input = document.createElement('input');
+      input.className = 'ans'; input.type = 'number'; input.inputMode = 'numeric';
+      input.autocomplete = 'off'; input.dataset.index = idx;
+      input.addEventListener('input', handleStart);
+      input.addEventListener('keydown', (e)=> handleEnterAdvance(e, idx));
+
+      const mark = document.createElement('div'); mark.className = 'mark'; mark.id = `mark-${idx}`;
+
+      wrap.appendChild(q); wrap.appendChild(eq); wrap.appendChild(input); wrap.appendChild(mark);
+      row.appendChild(wrap);
       return row;
     }
-    function renderSheet(){sheetEl.innerHTML='';problems.forEach((p,i)=>sheetEl.appendChild(rowEl(p,i)));}
+    function renderSheet(){
+      sheetEl.innerHTML = '';
+      problems.forEach((p, i)=> sheetEl.appendChild(rowEl(p, i)));
+    }
 
-    function handleStart(){if(!started){started=true;startTimer();}}
-    function handleEnterAdvance(e,idx){if(e.key==='Enter'){const inputs=sheetEl.querySelectorAll('input.ans');if(idx<inputs.length-1){inputs[idx+1].focus();}else{grade();}}}
+    function handleStart(){ if(!started){ started = true; startTimer(); } }
+    function handleEnterAdvance(e, idx){
+      if(e.key === 'Enter'){
+        const inputs = sheetEl.querySelectorAll('input.ans');
+        if(idx < inputs.length - 1){ inputs[idx+1].focus(); }
+        else { grade(); }
+      }
+    }
 
     function grade(){
       if(graded) return;
-      const inputs=sheetEl.querySelectorAll('input.ans');correct=0;wrong=0;const wrongListData=[];
-      inputs.forEach((inp,i)=>{const val=Number(inp.value);const p=problems[i];const m=document.getElementById(`mark-${i}`);
-        if(Number.isNaN(val)){m.textContent='⚠';m.className='mark bad';wrong++;wrongListData.push({idx:i+1,text:`${p.a} ${p.op} ${p.b}`,user:'미입력',ans:p.ans});}
-        else if(val===p.ans){m.textContent='✓';m.className='mark ok';correct++;}
-        else{m.textContent='✗';m.className='mark bad';wrong++;wrongListData.push({idx:i+1,text:`${p.a} ${p.op} ${p.b}`,user:val,ans:p.ans});}
-        inp.disabled=true;
+      const inputs = sheetEl.querySelectorAll('input.ans');
+      correct = 0; wrong = 0; const wrongListData = [];
+
+      inputs.forEach((inp, i)=>{
+        const val = Number(inp.value);
+        const p = problems[i];
+        const m = document.getElementById(`mark-${i}`);
+        if(Number.isNaN(val)){
+          m.textContent = '⚠'; m.className = 'mark bad';
+          wrong++; wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: '미입력', ans: p.ans });
+        } else if(val === p.ans){
+          m.textContent = '✓'; m.className = 'mark ok'; correct++;
+        } else {
+          m.textContent = '✗'; m.className = 'mark bad';
+          wrong++; wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: val, ans: p.ans });
+        }
+        inp.disabled = true;
       });
-      stopTimer();const elapsed=Date.now()-startTime;timerEl.textContent=fmt(elapsed);graded=true;
-      correctEl.textContent=correct;wrongEl.textContent=wrong;
-      resultEl.textContent=`결과: ${problems.length}문제 중 ${correct}개 정답, ${wrong}개 오답 · 시간 ${fmt(elapsed)}`;
-      wrongList.hidden=wrongListData.length===0;
-      wrongItems.innerHTML=wrongListData.length===0?'<p>오답이 없어요 🎉</p>':'';
-      wrongListData.forEach(item=>{const div=document.createElement('div');div.className='wrong-item';div.textContent=`${item.idx}. ${item.text} → 내 답: ${item.user}, 정답: ${item.ans}`;wrongItems.appendChild(div);});
-      gradeBtn.disabled=true;
+
+      stopTimer();
+      const elapsed = Date.now() - startTime;
+      timerEl.textContent = fmt(elapsed);
+      graded = true;
+
+      correctEl.textContent = correct;
+      wrongEl.textContent = wrong;
+      resultEl.textContent = `결과: ${problems.length}문제 중 ${correct}개 정답, ${wrong}개 오답 · 시간 ${fmt(elapsed)}`;
+
+      wrongList.hidden = wrongListData.length === 0;
+      wrongItems.innerHTML = wrongListData.length === 0 ? '<p>오답이 없어요 🎉</p>' : '';
+      wrongListData.forEach(item=>{
+        const div = document.createElement('div');
+        div.className = 'wrong-item';
+        div.textContent = `${item.idx}. ${item.text} → 내 답: ${item.user}, 정답: ${item.ans}`;
+        wrongItems.appendChild(div);
+      });
+
+      gradeBtn.disabled = true;
     }
 
-    function resetAll(){stopTimer();started=false;graded=false;problems=[];sheetEl.innerHTML='';countEl.textContent='0';correctEl.textContent='0';wrongEl.textContent='0';timerEl.textContent='00:00.0';resultEl.textContent='';wrongList.hidden=true;wrongItems.innerHTML='<p>아직 오답이 없습니다.</p>';gradeBtn.disabled=true;}
+    function resetAll(){
+      stopTimer(); started = false; graded = false; problems = [];
+      sheetEl.innerHTML = '';
+      countEl.textContent = '0';
+      correctEl.textContent = '0';
+      wrongEl.textContent = '0';
+      timerEl.textContent = '00:00.0';
+      resultEl.textContent = '';
+      wrongList.hidden = true;
+      wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
+      gradeBtn.disabled = true;
+    }
 
-    document.querySelectorAll('input[name="digitsA"]').forEach(r=>r.addEventListener('change',e=>{digitsA=Number(e.target.value)}));
-    document.querySelectorAll('input[name="digitsB"]').forEach(r=>r.addEventListener('change',e=>{digitsB=Number(e.target.value)}));
+    document.querySelectorAll('input[name="digitsA"]').forEach(r=>r.addEventListener('change',e=>{ digitsA = Number(e.target.value) || 1; }));
+    document.querySelectorAll('input[name="digitsB"]').forEach(r=>r.addEventListener('change',e=>{ digitsB = Number(e.target.value) || 1; }));
 
-    newSetBtn.addEventListener('click',generateSet);
-    gradeBtn.addEventListener('click',grade);
-    resetBtn.addEventListener('click',resetAll);
+    newSetBtn.addEventListener('click', generateSet);
+    gradeBtn.addEventListener('click', grade);
+    resetBtn.addEventListener('click', resetAll);
 
     generateSet();
   </script>
