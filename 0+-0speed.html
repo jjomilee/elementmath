@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>한 자리 수 덧셈 · 뺄셈 연습 </title>
+  <title>한 자리 수 덧셈 · 뺄셈 연습</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -31,11 +31,11 @@
     h1 { font-size: 1.6rem; margin: 0 0 6px; }
     .sub { opacity: .9; margin-top: 4px; font-size: .9rem; }
 
-    /* ----- 컨트롤 바: 한 줄 고정 (가로 스크롤 허용) ----- */
-    .controls {
-      margin: 14px auto 10px;
+    /* ===== 공통 바 스타일 (한 줄, 가로 스크롤 허용) ===== */
+    .bar {
+      margin: 12px auto 8px;
       display: flex;
-      flex-wrap: nowrap;          /* 무조건 한 줄 */
+      flex-wrap: nowrap;          /* 한 줄 고정 */
       gap: 10px;
       align-items: center;
       justify-content: center;
@@ -43,13 +43,16 @@
       padding: 8px 10px;
       border-radius: 10px;
       box-shadow: 0 2px 6px #aaa3;
-      max-width: 800px;
-      overflow-x: auto;           /* 화면이 좁으면 가로 스크롤 */
+      max-width: 820px;
+      overflow-x: auto;           /* 화면이 좁을 때 스크롤 */
       -webkit-overflow-scrolling: touch;
     }
-    .controls label { font-weight: 700; font-size: .95rem; white-space: nowrap; }
+    .bar > * { flex: 0 0 auto; }
 
-    input[type="number"]#problemCount {
+    .label { font-weight: 700; font-size: .95rem; white-space: nowrap; }
+
+    /* 입력 */
+    #problemCount {
       width: 76px;
       font-size: 1rem;
       padding: 6px;
@@ -57,14 +60,14 @@
       border-radius: 8px;
       border: 2px solid #aaa;
       transition: all 0.2s ease;
-      flex: 0 0 auto;             /* 줄바꿈 방지 */
     }
-    input[type="number"]#problemCount:focus {
+    #problemCount:focus {
       border-color: var(--accent);
       box-shadow: 0 0 6px var(--accent);
       outline: none;
     }
 
+    /* 버튼 */
     button {
       font-size: .95rem;
       padding: 8px 14px;
@@ -75,24 +78,12 @@
       cursor: pointer;
       box-shadow: 0 2px 6px #0001;
       transition: background 0.2s ease;
-      flex: 0 0 auto;             /* 줄바꿈 방지 */
       white-space: nowrap;
     }
     button:hover { background: var(--accent-dim); }
     button:disabled { background: #b0cfcf; cursor: not-allowed; }
 
-    /* ----- 상태 바: 한 줄 고정 (가로 스크롤 허용) ----- */
-    .status {
-      display: flex;              /* 한 줄 */
-      flex-wrap: nowrap;
-      gap: 10px;
-      justify-content: center;
-      align-items: center;
-      margin: 10px auto 14px;
-      max-width: 800px;
-      overflow-x: auto;           /* 좁을 때 스크롤 */
-      -webkit-overflow-scrolling: touch;
-    }
+    /* 상태 표시 알약 */
     .pill {
       background: var(--panel);
       border-radius: 999px;
@@ -100,17 +91,16 @@
       box-shadow: 0 0 6px #ccc;
       font-weight: 700;
       font-size: .95rem;
-      flex: 0 0 auto;             /* 줄바꿈 방지 */
       white-space: nowrap;
     }
 
     #timer { font-variant-numeric: tabular-nums; }
 
-    /* ----- 문제 시트: 가운데 정렬 ----- */
+    /* 시트: 가운데 정렬 */
     .sheet {
-      max-width: 720px;           /* 약간 컴팩트하게 */
+      max-width: 720px;
       margin: 0 auto;
-      text-align: center;         /* 텍스트 가운데 */
+      text-align: center;
       background: #fff;
       border-radius: 12px;
       box-shadow: 0 6px 14px #0002;
@@ -120,7 +110,7 @@
     .row {
       display: grid;
       grid-template-columns: auto 100px 40px; /* 문제, 입력, 채점표시 */
-      justify-content: center;    /* 그리드 전체를 가운데로 */
+      justify-content: center;    /* 가운데 배치 */
       align-items: center;
       gap: 8px;
       padding: 8px 6px;
@@ -163,24 +153,32 @@
   </style>
 </head>
 <body>
-  <h1>🍎 한 자리 수 덧셈 · 뺄셈 </h1>
+  <h1>🍎 한 자리 수 덧셈 · 뺄셈</h1>
   <div class="sub">원하는 문제 수를 정해 연습하고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
 
-  <!-- 컨트롤: 한 줄 -->
-  <div class="controls">
-    <label for="problemCount">문제 수</label>
-    <input type="number" id="problemCount" min="1" max="50" value="10">
-    <button id="newSetBtn">새 문제 만들기</button>
-    <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
+  <!-- 1줄: 문제수 설정 + 초기화 -->
+  <div class="bar" id="bar-setup">
+    <span class="label">문제 수</span>
+    <input type="number" id="problemCount" min="1" max="50" value="10" />
     <button id="resetBtn">초기화</button>
   </div>
 
-  <!-- 상태: 한 줄 -->
-  <div class="status">
+  <!-- 1줄: 새 문제 만들기 + 채점하기 -->
+  <div class="bar" id="bar-actions">
+    <button id="newSetBtn">새 문제 만들기</button>
+    <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
+  </div>
+
+  <!-- 1줄: 문제 수 + 시간 -->
+  <div class="bar" id="bar-count-time">
     <div class="pill">문제 수: <strong id="count">0</strong></div>
+    <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
+  </div>
+
+  <!-- 1줄: 맞힌/틀린 -->
+  <div class="bar" id="bar-score">
     <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
     <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
-    <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
   </div>
 
   <!-- 문제 시트 (가운데 정렬) -->
@@ -198,7 +196,7 @@
   </div>
 
   <script>
-    // ===== JS 로직 (변경 없음) =====
+    // ===== JS 로직 =====
     let problems = []; // { a, b, op, ans }
     let started = false, graded = false;
     let startTime = 0, timerId = null;
