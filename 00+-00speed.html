@@ -12,6 +12,7 @@
       --accent-dim: #e65100;
       --text: #333;
       --panel: #ffffffcc;
+      --panel-strong: #fff8e6;
       --wrong-bg: #fff4e6;
       --ok: #0a8a0a;
       --bad: #c0392b;
@@ -31,32 +32,44 @@
     h1 { font-size: 1.8rem; margin: 0 0 6px; }
     .sub { opacity: .9; margin-top: 4px; font-size: .95rem; }
 
-    /* === 바(한 줄 고정, 가로 스크롤 허용) === */
+    /* ===== 공통 박스 ===== */
+    .box {
+      max-width: 940px;
+      margin: 14px auto;
+      padding: 12px;
+      background: var(--panel);
+      border-radius: 14px;
+      box-shadow: 0 6px 16px #0002;
+    }
+    .box.header { background: var(--panel-strong); }
+
+    /* ===== 바(한 줄, 가로 스크롤 허용) ===== */
     .bar {
-      margin: 12px auto 8px;
+      margin: 6px auto;
       display: flex;
       flex-wrap: nowrap;          /* 한 줄 유지 */
       gap: 10px;
       align-items: center;
       justify-content: center;
-      background: var(--panel);
+      background: #fff;
       padding: 10px 12px;
-      border-radius: 12px;
-      box-shadow: 0 2px 6px #0002;
-      max-width: 860px;
-      overflow-x: auto;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px #0001;
+      overflow-x: auto;           /* 좁을 때 스크롤 */
       -webkit-overflow-scrolling: touch;
     }
     .bar > * { flex: 0 0 auto; white-space: nowrap; }
 
     .label { font-weight: 700; }
 
+    /* 입력 */
     #problemCount {
       width: 80px; text-align: center; font-size: 1rem; padding: 6px 8px;
       border: 2px solid #aaa; border-radius: 10px; transition: .2s;
     }
     #problemCount:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #f57c0026; }
 
+    /* 버튼 */
     button { 
       font-size: .95rem; padding: 8px 14px; border-radius: 10px; border: none; 
       background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 2px 6px #0001; 
@@ -65,6 +78,7 @@
     button:hover { background: var(--accent-dim); }
     button:disabled { background: #f6c288; cursor: not-allowed; }
 
+    /* 상태 표시 알약 */
     .pill { 
       background: var(--panel); border-radius: 999px; padding: 8px 12px; 
       box-shadow: 0 0 6px #ccc; font-weight: 700; font-size: .95rem; white-space: nowrap; 
@@ -72,9 +86,9 @@
 
     #timer { font-variant-numeric: tabular-nums; }
 
-    /* === 문제 시트: 모바일에서도 1줄 유지 === */
+    /* ===== 문제 시트: 모바일에서도 1줄 유지 ===== */
     .sheet { 
-      max-width: 900px; margin: 0 auto; background: #fff; padding: 10px 10px; 
+      max-width: 940px; margin: 0 auto; background: #fff; padding: 10px 10px; 
       border-radius: 14px; box-shadow: 0 8px 18px #0002; text-align: center;
     }
     .row {
@@ -97,7 +111,7 @@
 
     #result { font-size: 1rem; margin: 12px 0 6px; font-weight: bold; }
 
-    #wrongList { margin-top: 14px; background: var(--wrong-bg); padding: 10px 12px; border-radius: 10px; box-shadow: 0 0 4px #ccc; max-width: 860px; margin-left:auto; margin-right:auto; }
+    #wrongList { margin-top: 14px; background: var(--wrong-bg); padding: 10px 12px; border-radius: 10px; box-shadow: 0 0 4px #ccc; max-width: 940px; margin-left:auto; margin-right:auto; }
     #wrongList h3 { margin: 0 0 6px; font-size: 1rem; }
     .wrong-item { font-size: .92rem; margin: 4px 0; }
 
@@ -114,31 +128,35 @@
 </head>
 <body>
   <h1>🧮 두 자리 수 덧셈 · 뺄셈</h1>
-  <div class="sub">원하는 문제 수를 정해 연습하고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
+  <div class="sub">문제 세트를 만들고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
 
-  <!-- 윗줄: 문제수 설정 + 초기화 -->
-  <div class="bar" id="bar-setup">
-    <span class="label">문제 수</span>
-    <input type="number" id="problemCount" min="1" max="50" value="10" />
-    <button id="resetBtn">초기화</button>
+  <!-- 상단 박스: 설정/동작 -->
+  <div class="box header controls-box">
+    <!-- 줄1: 문제수 설정 + 초기화 -->
+    <div class="bar" id="bar-setup">
+      <span class="label">문제 수</span>
+      <input type="number" id="problemCount" min="1" max="50" value="10" />
+      <button id="resetBtn">초기화</button>
+    </div>
+    <!-- 줄2: 새 문제 만들기 + 채점하기 -->
+    <div class="bar" id="bar-actions">
+      <button id="newSetBtn">새 문제 만들기</button>
+      <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
+    </div>
   </div>
 
-  <!-- 둘째 줄: 새 문제 만들기 + 채점하기 -->
-  <div class="bar" id="bar-actions">
-    <button id="newSetBtn">새 문제 만들기</button>
-    <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
-  </div>
-
-  <!-- 셋째 줄: 문제 수 + 시간 -->
-  <div class="bar" id="bar-count-time">
-    <div class="pill">문제 수: <strong id="count">0</strong></div>
-    <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
-  </div>
-
-  <!-- 넷째 줄: 맞힌 개수 + 틀린 개수 -->
-  <div class="bar" id="bar-score">
-    <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
-    <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
+  <!-- 하단 박스: 상태 표시 -->
+  <div class="box status-box">
+    <!-- 줄3: 문제 수 + 시간 -->
+    <div class="bar" id="bar-count-time">
+      <div class="pill">문제 수: <strong id="count">0</strong></div>
+      <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
+    </div>
+    <!-- 줄4: 맞힌 개수 + 틀린 개수 -->
+    <div class="bar" id="bar-score">
+      <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
+      <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
+    </div>
   </div>
 
   <!-- 문제 시트 -->
@@ -156,6 +174,7 @@
   </div>
 
   <script>
+    // ===== 로직 =====
     let problems = []; // { a, b, op, ans }
     let started = false, graded = false;
     let startTime = 0, timerId = null;
@@ -226,7 +245,7 @@
       wrongList.hidden = true;
       wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
       gradeBtn.disabled = false;
-      const first = sheetEl.querySelector('input');
+      const first = sheetEl.querySelector('input.ans');
       if(first){ first.focus(); }
     }
 
