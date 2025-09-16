@@ -2,17 +2,17 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>두 자리 수 덧셈 · 뺄셈 연습</title>
+  <title>곱셈 연습</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
-      --bg1: #fceabb;
-      --bg2: #f8b500;
-      --accent: #f57c00;
-      --accent-dim: #e65100;
+      --bg1: #e0f7fa;
+      --bg2: #80deea;
+      --accent: #00796b;
+      --accent-dim: #00695c;
       --text: #333;
       --panel: #ffffffcc;
-      --panel-strong: #fff8e6;
+      --panel-strong: #e6fffb;
       --wrong-bg: #fff4e6;
       --ok: #0a8a0a;
       --bad: #c0392b;
@@ -47,7 +47,7 @@
     .bar {
       margin: 6px auto;
       display: flex;
-      flex-wrap: nowrap;          /* 한 줄 유지 */
+      flex-wrap: nowrap;
       gap: 10px;
       align-items: center;
       justify-content: center;
@@ -55,7 +55,7 @@
       padding: 10px 12px;
       border-radius: 10px;
       box-shadow: 0 2px 6px #0001;
-      overflow-x: auto;           /* 좁을 때 스크롤 */
+      overflow-x: auto;
       -webkit-overflow-scrolling: touch;
     }
     .bar > * { flex: 0 0 auto; white-space: nowrap; }
@@ -67,28 +67,41 @@
       width: 80px; text-align: center; font-size: 1rem; padding: 6px 8px;
       border: 2px solid #aaa; border-radius: 10px; transition: .2s;
     }
-    #problemCount:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #f57c0026; }
+    #problemCount:focus { outline: none; border-color: var(--accent); box-shadow: 0 0 0 3px #00796b22; }
 
     /* 버튼 */
-    button { 
-      font-size: .95rem; padding: 8px 14px; border-radius: 10px; border: none; 
-      background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 2px 6px #0001; 
+    button {
+      font-size: .95rem; padding: 8px 14px; border-radius: 10px; border: none;
+      background: var(--accent); color: #fff; cursor: pointer; box-shadow: 0 2px 6px #0001;
       transition: background .2s; white-space: nowrap;
     }
     button:hover { background: var(--accent-dim); }
-    button:disabled { background: #f6c288; cursor: not-allowed; }
+    button:disabled { background: #a7d7d3; cursor: not-allowed; }
+
+    /* ===== 자리수 토글(세그먼트) ===== */
+    .seg {
+      display: inline-flex; gap: 0; border-radius: 10px; overflow: hidden; border: 2px solid #ddd;
+    }
+    .seg input { position: absolute; opacity: 0; pointer-events: none; }
+    .seg label {
+      padding: 8px 12px; font-weight: 700; cursor: pointer; user-select: none;
+      background: #fafafa; border-right: 1px solid #ddd; transition: background .15s, color .15s;
+    }
+    .seg label:last-child { border-right: 0; }
+    .seg input:checked + label { background: var(--accent); color: #fff; }
+    .seg label:hover { background: #f1f1f1; }
 
     /* 상태 표시 알약 */
-    .pill { 
-      background: var(--panel); border-radius: 999px; padding: 8px 12px; 
-      box-shadow: 0 0 6px #ccc; font-weight: 700; font-size: .95rem; white-space: nowrap; 
+    .pill {
+      background: var(--panel); border-radius: 999px; padding: 8px 12px;
+      box-shadow: 0 0 6px #ccc; font-weight: 700; font-size: .95rem; white-space: nowrap;
     }
 
     #timer { font-variant-numeric: tabular-nums; }
 
     /* ===== 문제 시트: 모바일에서도 1줄 유지 ===== */
-    .sheet { 
-      max-width: 940px; margin: 0 auto; background: #fff; padding: 10px 10px; 
+    .sheet {
+      max-width: 940px; margin: 0 auto; background: #fff; padding: 10px;
       border-radius: 14px; box-shadow: 0 8px 18px #0002; text-align: center;
     }
     .row {
@@ -100,10 +113,10 @@
     .row-inner { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; margin: 0 auto; }
 
     .q { font-size: 1.3rem; color: #222; }
-    .q small { opacity: .6; font-size: .85rem; }
+    .eq { font-size: 1.2rem; font-weight: 700; margin: 0 4px; }
 
     .ans { width: 110px; max-width: 30vw; text-align: center; font-size: 1.05rem; padding: 8px 10px; border-radius: 10px; border: 2px solid #aaa; outline: none; }
-    .ans:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #f57c0026; }
+    .ans:focus { border-color: var(--accent); box-shadow: 0 0 0 3px #00796b22; }
 
     .mark { width: 40px; text-align: center; font-size: 1.2rem; font-weight: 700; }
     .mark.ok { color: var(--ok); }
@@ -127,17 +140,32 @@
   </style>
 </head>
 <body>
-  <h1>🧮 두 자리 수 덧셈 · 뺄셈</h1>
-  <div class="sub">원하는 문제 수를 정해 연습하고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
+  <h1>✖️ 곱셈 연습</h1>
+  <div class="sub">피승수와 승수의 <strong>자리수</strong>를 선택해 문제를 만들고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
 
   <!-- 상단 박스: 설정/동작 -->
   <div class="box header controls-box">
-    <!-- 줄1: 문제수 설정 + 초기화 -->
+    <!-- 줄1: 피승수/승수 자리수 + 문제수 + 초기화 -->
     <div class="bar" id="bar-setup">
+      <span class="label">피승수(앞)</span>
+      <div class="seg" role="tablist" aria-label="피승수 자리수">
+        <input type="radio" name="digitsA" id="a1" value="1" checked><label for="a1">1자리</label>
+        <input type="radio" name="digitsA" id="a2" value="2"><label for="a2">2자리</label>
+        <input type="radio" name="digitsA" id="a3" value="3"><label for="a3">3자리</label>
+      </div>
+
+      <span class="label">승수(뒤)</span>
+      <div class="seg" role="tablist" aria-label="승수 자리수">
+        <input type="radio" name="digitsB" id="b1" value="1" checked><label for="b1">1자리</label>
+        <input type="radio" name="digitsB" id="b2" value="2"><label for="b2">2자리</label>
+        <input type="radio" name="digitsB" id="b3" value="3"><label for="b3">3자리</label>
+      </div>
+
       <span class="label">문제 수</span>
       <input type="number" id="problemCount" min="1" max="50" value="10" />
       <button id="resetBtn">초기화</button>
     </div>
+
     <!-- 줄2: 새 문제 만들기 + 채점하기 -->
     <div class="bar" id="bar-actions">
       <button id="newSetBtn">새 문제 만들기</button>
@@ -147,12 +175,10 @@
 
   <!-- 하단 박스: 상태 표시 -->
   <div class="box status-box">
-    <!-- 줄3: 문제 수 + 시간 -->
     <div class="bar" id="bar-count-time">
       <div class="pill">문제 수: <strong id="count">0</strong></div>
       <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
     </div>
-    <!-- 줄4: 맞힌 개수 + 틀린 개수 -->
     <div class="bar" id="bar-score">
       <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
       <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
@@ -174,12 +200,15 @@
   </div>
 
   <script>
-    // ===== 로직 =====
-    let problems = []; // { a, b, op, ans }
+    // ===== 상태 =====
+    let problems = []; // { a, b, op:'×', ans }
     let started = false, graded = false;
     let startTime = 0, timerId = null;
     let correct = 0, wrong = 0;
+    let digitsA = 1; // 피승수 자리수
+    let digitsB = 1; // 승수 자리수
 
+    // ===== 엘리먼트 =====
     const sheetEl = document.getElementById('sheet');
     const gradeBtn = document.getElementById('gradeBtn');
     const newSetBtn = document.getElementById('newSetBtn');
@@ -194,6 +223,10 @@
     const wrongList = document.getElementById('wrongList');
     const wrongItems = document.getElementById('wrongItems');
 
+    const aRadios = Array.from(document.querySelectorAll('input[name="digitsA"]'));
+    const bRadios = Array.from(document.querySelectorAll('input[name="digitsB"]'));
+
+    // ===== 유틸 =====
     function fmt(ms){
       const total = Math.floor(ms);
       const m = Math.floor(total / 60000);
@@ -208,21 +241,28 @@
     }
     function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
 
-    function randInt10to99(){ return Math.floor(Math.random()*90)+10; }
+    function randByDigits(d){
+      const min = d === 1 ? 1 : Math.pow(10, d-1);
+      const max = Math.pow(10, d) - 1;
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
 
     function makeProblem(){
-      let a = randInt10to99();
-      let b = randInt10to99();
-      const op = Math.random() < 0.5 ? '+' : '-';
-      if(op === '-' && b > a) [a,b] = [b,a];
-      const ans = op === '+' ? a + b : a - b;
+      const a = randByDigits(digitsA);
+      const b = randByDigits(digitsB);
+      const op = '×';
+      const ans = a * b;
       return { a, b, op, ans };
     }
 
+    // 곱셈은 교환법칙 성립 → 중복 방지를 위해 (a,b)를 정렬해서 키 생성
     function uniqueKey(p){
-      return p.op === '+' ? `${Math.min(p.a,p.b)}+${Math.max(p.a,p.b)}` : `${p.a}-${p.b}`;
+      const x = Math.min(p.a, p.b);
+      const y = Math.max(p.a, p.b);
+      return `${x}×${y}`;
     }
 
+    // ===== 세트 생성/렌더 =====
     function generateSet(){
       let n = parseInt(problemCountEl.value, 10);
       if(isNaN(n) || n < 1) n = 10;
@@ -235,6 +275,7 @@
         const k = uniqueKey(p);
         if(!seen.has(k)) { seen.add(k); problems.push(p); }
       }
+
       correct = 0; wrong = 0; graded = false; started = false;
       countEl.textContent = problems.length;
       correctEl.textContent = correct;
@@ -245,6 +286,7 @@
       wrongList.hidden = true;
       wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
       gradeBtn.disabled = false;
+
       const first = sheetEl.querySelector('input.ans');
       if(first){ first.focus(); }
     }
@@ -257,7 +299,11 @@
 
       const q = document.createElement('div');
       q.className = 'q';
-      q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong> <small>= </small>`;
+      q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong>`;
+
+      const eq = document.createElement('span');
+      eq.className = 'eq';
+      eq.textContent = '=';
 
       const input = document.createElement('input');
       input.className = 'ans';
@@ -273,6 +319,7 @@
       mark.id = `mark-${idx}`;
 
       wrap.appendChild(q);
+      wrap.appendChild(eq);
       wrap.appendChild(input);
       wrap.appendChild(mark);
       row.appendChild(wrap);
@@ -281,9 +328,10 @@
 
     function renderSheet(){
       sheetEl.innerHTML = '';
-      problems.forEach((p, idx)=>{ sheetEl.appendChild(rowEl(p, idx)); });
+      problems.forEach((p, idx)=> sheetEl.appendChild(rowEl(p, idx)));
     }
 
+    // ===== 흐름 제어 =====
     function handleStart(){ if(!started){ started = true; startTimer(); } }
 
     function handleEnterAdvance(e, idx){
@@ -354,10 +402,15 @@
       gradeBtn.disabled = true;
     }
 
+    // 자리수 토글 핸들링(세트 재생성은 '새 문제 만들기'에서 수행)
+    aRadios.forEach(r => r.addEventListener('change', (e)=>{ digitsA = Number(e.target.value) || 1; }));
+    bRadios.forEach(r => r.addEventListener('change', (e)=>{ digitsB = Number(e.target.value) || 1; }));
+
     newSetBtn.addEventListener('click', generateSet);
     gradeBtn.addEventListener('click', grade);
     resetBtn.addEventListener('click', resetAll);
 
+    // 초기 세트 생성
     generateSet();
   </script>
 </body>
