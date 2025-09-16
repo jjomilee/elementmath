@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <title>두 자리 수 덧셈 · 뺄셈 연습</title>
+  <title>두 자리 수 덧셈 · 뺄셈 연습 </title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
     :root {
@@ -31,7 +31,16 @@
     h1 { font-size: 2rem; margin: 0 0 8px; }
     .sub { opacity: .9; margin-top: 4px; font-size: .95rem; }
 
-    .controls { margin: 18px 0 10px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+    .controls { margin: 18px 0 10px; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; align-items: center; }
+
+    input[type="number"]#problemCount {
+      width: 80px;
+      font-size: 1rem;
+      padding: 6px;
+      text-align: center;
+      border-radius: 8px;
+      border: 2px solid #aaa;
+    }
 
     button {
       font-size: 1rem;
@@ -71,7 +80,7 @@
     .q { font-size: 1.5rem; color: #222; }
     .q small { opacity: .6; font-size: .9rem; }
 
-    input[type="number"] {
+    input[type="number"]:not(#problemCount) {
       font-size: 1.2rem; width: 100%; text-align: center; padding: 10px 12px;
       border-radius: 10px; border: 2px solid #aaa; outline: none;
     }
@@ -92,11 +101,13 @@
   </style>
 </head>
 <body>
-  <h1>🧮 두 자리 수 덧셈 · 뺄셈 </h1>
-  <div class="sub">10문제를 한꺼번에 풀고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인해요.</div>
+  <h1>🧮 두 자리 수 덧셈 · 뺄셈</h1>
+  <div class="sub">원하는 문제 수를 정해 연습하고, <strong>걸린 시간</strong>과 <strong>정답/오답</strong>을 확인하세요.</div>
 
   <div class="controls">
-    <button id="newSetBtn">새 문제 10개 만들기</button>
+    <label for="problemCount">문제 수:</label>
+    <input type="number" id="problemCount" min="1" max="50" value="10">
+    <button id="newSetBtn">새 문제 만들기</button>
     <button id="gradeBtn" disabled>채점하기 (Enter 가능)</button>
     <button id="resetBtn">초기화</button>
   </div>
@@ -122,7 +133,6 @@
   </div>
 
   <script>
-    // ===== 데이터 & 상태 =====
     let problems = []; // { a, b, op, ans }
     let started = false, graded = false;
     let startTime = 0, timerId = null;
@@ -132,6 +142,7 @@
     const gradeBtn = document.getElementById('gradeBtn');
     const newSetBtn = document.getElementById('newSetBtn');
     const resetBtn = document.getElementById('resetBtn');
+    const problemCountEl = document.getElementById('problemCount');
 
     const countEl = document.getElementById('count');
     const correctEl = document.getElementById('correct');
@@ -141,12 +152,11 @@
     const wrongList = document.getElementById('wrongList');
     const wrongItems = document.getElementById('wrongItems');
 
-    // ===== 유틸 =====
     function fmt(ms){
       const total = Math.floor(ms);
       const m = Math.floor(total / 60000);
       const s = Math.floor((total % 60000) / 1000);
-      const d = Math.floor((total % 1000) / 100); // decisecond
+      const d = Math.floor((total % 1000) / 100);
       return `${String(m).padStart(2,'0')}:${String(s).padStart(2,'0')}.${d}`;
     }
 
@@ -164,7 +174,7 @@
       let a = randInt10to99();
       let b = randInt10to99();
       const op = Math.random() < 0.5 ? '+' : '-';
-      if(op === '-' && b > a) [a,b] = [b,a]; // 음수 방지
+      if(op === '-' && b > a) [a,b] = [b,a];
       const ans = op === '+' ? a + b : a - b;
       return { a, b, op, ans };
     }
@@ -173,7 +183,11 @@
       return p.op === '+' ? `${Math.min(p.a,p.b)}+${Math.max(p.a,p.b)}` : `${p.a}-${p.b}`;
     }
 
-    function generateSet(n=10){
+    function generateSet(){
+      let n = parseInt(problemCountEl.value, 10);
+      if(isNaN(n) || n < 1) n = 10;
+      if(n > 50) n = 50;
+
       const seen = new Set();
       problems = [];
       while(problems.length < n){
@@ -284,7 +298,6 @@
 
       resultEl.textContent = `결과: ${problems.length}문제 중 ${correct}개 정답, ${wrong}개 오답 · 시간 ${fmt(elapsed)}`;
 
-      // 오답 목록 렌더링
       wrongList.hidden = wrongListData.length === 0;
       if(wrongListData.length === 0){
         wrongItems.innerHTML = '<p>오답이 없어요. 훌륭해요! 🎉</p>';
@@ -316,13 +329,11 @@
       gradeBtn.disabled = true;
     }
 
-    // ===== 이벤트 바인딩 =====
-    newSetBtn.addEventListener('click', ()=> generateSet(10));
+    newSetBtn.addEventListener('click', generateSet);
     gradeBtn.addEventListener('click', grade);
     resetBtn.addEventListener('click', resetAll);
 
-    // 최초 세트 생성
-    generateSet(10);
+    generateSet();
   </script>
 </body>
 </html>
