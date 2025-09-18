@@ -5,230 +5,124 @@
   <title>곱셈 연습</title>
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <style>
-    :root {
-      --bg1: #e0f7fa;
-      --bg2: #80deea;
-      --accent: #00796b;
-      --accent-dim: #00695c;
-      --text: #333;
-      --panel: #ffffffcc;
-      --panel-strong: #e6fffb;
-      --wrong-bg: #fff4e6;
-      --ok: #0a8a0a;
-      --bad: #c0392b;
-      --border: #d8e6e5;
+    :root{
+      --bg1:#f7fbff; --bg2:#e9f4ff; --ink:#1f2937; --muted:#6b7280;
+      --brand:#2563eb; --brand-2:#1e40af; --ok:#059669; --bad:#dc2626; --panel:#fff;
+      --ring:#93c5fd; --border:#e5e7eb;
     }
+    *{box-sizing:border-box}
+    body{margin:0;padding:24px 14px;font-family:ui-sans-serif,system-ui,apple-system,'Segoe UI',Roboto,'Noto Sans KR',sans-serif;color:var(--ink);
+      background:linear-gradient(180deg,var(--bg1),var(--bg2));}
+    h1{margin:0 0 8px;font-size:1.7rem}
+    .sub{color:var(--muted);margin-bottom:12px}
 
-    * { box-sizing: border-box; }
+    .wrap{max-width:980px;margin:0 auto;}
 
-    body {
-      font-family: 'Comic Sans MS', 'Arial', sans-serif;
-      background: linear-gradient(to bottom right, var(--bg1), var(--bg2));
-      color: var(--text);
-      margin: 0;
-      padding: 20px 12px 64px;
-      text-align: center;
-    }
+    .card{background:var(--panel);border:1px solid var(--border);border-radius:14px;box-shadow:0 6px 20px #0001;padding:14px;margin:10px 0}
 
-    h1 { font-size: 1.8rem; margin: 0 0 6px; }
-    .sub { opacity: .9; margin-top: 4px; font-size: .95rem; }
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+    .field{display:flex;flex-direction:column;gap:6px}
+    .field label{font-weight:700;font-size:.9rem}
+    select, input[type=number]{appearance:none;padding:10px 12px;border:1px solid var(--border);border-radius:10px;font-size:1rem;background:#fff}
+    select:focus, input[type=number]:focus{outline:3px solid var(--ring)}
 
-    .box {
-      max-width: 940px;
-      margin: 14px auto;
-      padding: 12px;
-      background: var(--panel);
-      border-radius: 14px;
-      box-shadow: 0 6px 16px #0002;
-    }
-    .box.header { background: var(--panel-strong); }
+    .btn{border:0;border-radius:10px;padding:10px 14px;background:var(--brand);color:#fff;font-weight:700;cursor:pointer}
+    .btn:hover{background:var(--brand-2)}
+    .btn.secondary{background:#eef2ff;color:#1e293b}
+    .btn:disabled{background:#cbd5e1;color:#475569;cursor:not-allowed}
 
-    .bar {
-      margin: 6px auto;
-      display: flex;
-      flex-wrap: nowrap;            /* 한 줄 유지 */
-      gap: 10px;
-      align-items: center;
-      justify-content: center;
-      background: #fff;
-      padding: 10px 12px;
-      border-radius: 10px;
-      box-shadow: 0 2px 6px #0001;
-      overflow-x: auto;             /* 좁을 때 가로 스크롤 */
-      -webkit-overflow-scrolling: touch;
-    }
-    .bar > * { flex: 0 0 auto; white-space: nowrap; }
+    .stats{display:flex;flex-wrap:wrap;gap:10px}
+    .pill{background:#f8fafc;border:1px solid var(--border);border-radius:999px;padding:8px 12px;font-weight:700}
 
-    .label { font-weight: 700; }
+    .sheet{background:#fff;border:1px solid var(--border);border-radius:12px;padding:10px}
+    .row{display:flex;align-items:center;gap:10px;padding:8px 6px;border-bottom:1px dashed #eee}
+    .row:last-child{border-bottom:0}
+    .q{font-size:1.2rem}
+    .ans{width:120px;padding:8px 10px;border:1px solid #cbd5e1;border-radius:10px;font-size:1rem;text-align:center}
+    .mark{width:42px;text-align:center;font-weight:900}
+    .ok{color:var(--ok)} .bad{color:var(--bad)}
 
-    #problemCount {
-      width: 80px; text-align: center; font-size: 1rem; padding: 6px 8px;
-      border: 2px solid #aaa; border-radius: 10px;
-    }
+    #wrongList{margin-top:10px;background:#fff7ed;border:1px solid #fed7aa;border-radius:10px;padding:10px}
+    .wrong-item{font-size:.95rem;margin:4px 0}
 
-    button {
-      font-size: .95rem; padding: 8px 14px; border-radius: 10px; border: none;
-      background: var(--accent); color: #fff; cursor: pointer;
-      box-shadow: 0 2px 6px #0001; transition: background .2s;
-    }
-    button:hover { background: var(--accent-dim); }
-    button:disabled { background: #a7d7d3; cursor: not-allowed; }
-
-    /* === 자리수 선택 (가로 배치 + 타이틀 왼쪽) === */
-    .chooser-wrap {
-      display: flex; gap: 16px; flex-wrap: wrap; justify-content: center; width: 100%;
-    }
-    .col {
-      background: #fff; border-radius: 10px; box-shadow: 0 2px 6px #0001;
-      padding: 10px; min-width: 260px;
-    }
-    .col-row { display: flex; align-items: center; gap: 12px; }
-    .col-title { font-weight: 800; min-width: 80px; text-align: right; }
-
-    .grid {
-      display: flex; align-items: center; gap: 8px;
-      overflow-x: auto; -webkit-overflow-scrolling: touch;
-    }
-    .cell {
-      position: relative; border: 2px solid (--border, #d8e6e5); /* fallback */
-      border: 2px solid var(--border);
-      border-radius: 10px; overflow: hidden;
-      flex: 0 0 auto; min-width: 82px; text-align: center;
-    }
-    .cell input { position: absolute; inset: 0; opacity: 0; }
-    .cell label { display: block; padding: 8px 10px; font-weight: 800; cursor: pointer; }
-    .cell:hover { border-color: #b5d3d1; }
-    .cell input:checked + label { background: var(--accent); color: #fff; }
-
-    .pill {
-      background: var(--panel);
-      border-radius: 999px;
-      padding: 8px 12px;
-      box-shadow: 0 0 6px #ccc;
-      font-weight: 700;
-      font-size: .95rem;
-    }
-
-    #timer { font-variant-numeric: tabular-nums; }
-
-    .sheet {
-      max-width: 940px; margin: 0 auto; background: #fff; padding: 10px;
-      border-radius: 14px; box-shadow: 0 8px 18px #0002; text-align: center;
-    }
-    .row {
-      display: inline-flex; align-items: center; justify-content: center;
-      gap: 10px; padding: 8px 6px; border-bottom: 1px dashed #eee; width: 100%;
-    }
-    .row:last-child { border-bottom: none; }
-    .row-inner { display: inline-flex; align-items: center; gap: 10px; white-space: nowrap; }
-    .q { font-size: 1.3rem; }
-    .eq { font-size: 1.2rem; font-weight: 700; margin: 0 4px; }
-    .ans {
-      width: 110px; text-align: center; font-size: 1.05rem;
-      padding: 8px 10px; border-radius: 10px; border: 2px solid #aaa;
-    }
-    .mark { width: 40px; text-align: center; font-size: 1.2rem; }
-    .mark.ok { color: var(--ok); }
-    .mark.bad { color: var(--bad); }
-
-    #result { margin: 12px 0 6px; font-weight: bold; }
-
-    #wrongList {
-      margin-top: 14px; background: var(--wrong-bg);
-      padding: 10px 12px; border-radius: 10px;
-      box-shadow: 0 0 4px #ccc; max-width: 940px;
-      margin-left: auto; margin-right: auto;
-    }
-    .wrong-item { font-size: .92rem; margin: 4px 0; }
+    .spacer{flex:1}
   </style>
 </head>
 <body>
-  <h1>✖️ 곱셈 연습</h1>
-  <div class="sub">앞자리수/뒤자리수를 선택하고 문제를 만드세요.</div>
+  <div class="wrap">
+    <h1>✖️ 곱셈 연습</h1>
+    <div class="sub">두 피연산자의 자리수를 드롭다운으로 고르고, 원하는 문제 수를 입력하세요.</div>
 
-  <div class="box header">
-    <!-- 줄1: 자리수 선택(두 블록) -->
-    <div class="bar">
-      <div class="chooser-wrap">
-        <!-- 앞자리수 -->
-        <div class="col" aria-labelledby="colA-title">
-          <div class="col-row">
-            <div class="col-title" id="colA-title">앞자리수</div>
-            <div class="grid" role="radiogroup" aria-label="앞자리수 선택">
-              <div class="cell"><input type="radio" name="digitsA" id="a1" value="1" checked><label for="a1">1자리</label></div>
-              <div class="cell"><input type="radio" name="digitsA" id="a2" value="2"><label for="a2">2자리</label></div>
-              <div class="cell"><input type="radio" name="digitsA" id="a3" value="3"><label for="a3">3자리</label></div>
-            </div>
-          </div>
+    <div class="card">
+      <div class="toolbar" role="form" aria-label="설정">
+        <div class="field">
+          <label for="digitsA">앞자리수</label>
+          <select id="digitsA" aria-label="앞자리수 선택">
+            <option value="1">1자리</option>
+            <option value="2">2자리</option>
+            <option value="3">3자리</option>
+            <option value="4">4자리</option>
+          </select>
         </div>
-        <!-- 뒤자리수 -->
-        <div class="col" aria-labelledby="colB-title">
-          <div class="col-row">
-            <div class="col-title" id="colB-title">뒤자리수</div>
-            <div class="grid" role="radiogroup" aria-label="뒤자리수 선택">
-              <div class="cell"><input type="radio" name="digitsB" id="b1" value="1" checked><label for="b1">1자리</label></div>
-              <div class="cell"><input type="radio" name="digitsB" id="b2" value="2"><label for="b2">2자리</label></div>
-              <div class="cell"><input type="radio" name="digitsB" id="b3" value="3"><label for="b3">3자리</label></div>
-            </div>
-          </div>
+        <div class="field">
+          <label for="digitsB">뒤자리수</label>
+          <select id="digitsB" aria-label="뒤자리수 선택">
+            <option value="1">1자리</option>
+            <option value="2">2자리</option>
+            <option value="3">3자리</option>
+            <option value="4">4자리</option>
+          </select>
         </div>
+        <div class="field">
+          <label for="problemCount">문제 수</label>
+          <input id="problemCount" type="number" min="1" max="100" value="10" inputmode="numeric" />
+        </div>
+        <span class="spacer"></span>
+        <button id="newSetBtn" class="btn">새 문제 만들기</button>
+        <button id="gradeBtn" class="btn secondary" disabled>채점하기</button>
+        <button id="resetBtn" class="btn secondary">초기화</button>
       </div>
     </div>
 
-    <!-- 줄2: 한 줄에 동작 + 문제수 + 초기화 (요청사항 반영) -->
-    <div class="bar">
-      <span class="label">문제 수</span>
-      <input type="number" id="problemCount" min="1" max="50" value="10" />
-      <button id="resetBtn">초기화</button>
-      <button id="newSetBtn">새 문제 만들기</button>
-      <button id="gradeBtn" disabled>채점하기</button>
-
+    <div class="card">
+      <div class="stats">
+        <div class="pill">문제 수: <strong id="count">0</strong></div>
+        <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
+        <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
+        <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
+      </div>
     </div>
-  </div>
 
-  <div class="box">
-    <div class="bar">
-      <div class="pill">문제 수: <strong id="count">0</strong></div>
-      <div class="pill">시간: <strong id="timer">00:00.0</strong></div>
-    </div>
-    <div class="bar">
-      <div class="pill">맞힌 개수: <strong id="correct">0</strong></div>
-      <div class="pill">틀린 개수: <strong id="wrong">0</strong></div>
-    </div>
-  </div>
+    <div id="sheet" class="sheet" aria-live="polite"></div>
+    <div id="result" style="margin-top:8px;font-weight:700"></div>
 
-  <div class="sheet" id="sheet"></div>
-  <div id="result"></div>
-  <div id="wrongList" hidden>
-    <h3>❌ 오답 목록</h3>
-    <div id="wrongItems"><p>아직 오답이 없습니다.</p></div>
+    <div id="wrongList" hidden>
+      <h3 style="margin:0 0 6px">❌ 오답 목록</h3>
+      <div id="wrongItems"><p>아직 오답이 없습니다.</p></div>
+    </div>
   </div>
 
   <script>
+    // ===== 상태 =====
     let problems = [];
     let started = false, graded = false;
     let startTime = 0, timerId = null;
     let correct = 0, wrong = 0;
-    let digitsA = 1, digitsB = 1;
 
+    // ===== 엘리먼트 =====
+    const digitsAEl = document.getElementById('digitsA');
+    const digitsBEl = document.getElementById('digitsB');
+    const problemCountEl = document.getElementById('problemCount');
     const sheetEl = document.getElementById('sheet');
     const gradeBtn = document.getElementById('gradeBtn');
     const newSetBtn = document.getElementById('newSetBtn');
     const resetBtn = document.getElementById('resetBtn');
-    const problemCountEl = document.getElementById('problemCount');
-    const countEl = document.createElement('span'); // will be filled later via DOM lookup
-    const correctEl = document.getElementById('correct');
-    const wrongEl = document.getElementById('wrong');
     const timerEl = document.getElementById('timer');
     const resultEl = document.getElementById('result');
     const wrongList = document.getElementById('wrongList');
     const wrongItems = document.getElementById('wrongItems');
 
-    // 보정: countEl 제대로 가져오기
-    document.addEventListener('DOMContentLoaded', () => {
-      window.countEl = document.querySelector('#count');
-    });
-
+    // ===== 유틸 =====
     function fmt(ms){
       const total = Math.floor(ms);
       const m = Math.floor(total/60000);
@@ -238,27 +132,56 @@
     }
     function startTimer(){
       startTime = Date.now();
-      timerId = setInterval(()=>{ document.getElementById('timer').textContent = fmt(Date.now() - startTime); }, 100);
+      timerId = setInterval(()=>{ timerEl.textContent = fmt(Date.now() - startTime); }, 100);
     }
     function stopTimer(){ if(timerId){ clearInterval(timerId); timerId = null; } }
 
     function randByDigits(d){
-      const min = d === 1 ? 1 : Math.pow(10, d-1);
-      const max = Math.pow(10, d) - 1;
+      const di = Number(d);
+      const min = di === 1 ? 1 : Math.pow(10, di-1);
+      const max = Math.pow(10, di) - 1;
       return Math.floor(Math.random() * (max - min + 1)) + min;
     }
     function makeProblem(){
-      const a = randByDigits(digitsA);
-      const b = randByDigits(digitsB);
+      const a = randByDigits(digitsAEl.value);
+      const b = randByDigits(digitsBEl.value);
       return { a, b, op: '×', ans: a * b };
     }
     function uniqueKey(p){ return `${Math.min(p.a,p.b)}×${Math.max(p.a,p.b)}`; }
 
+    // ===== 렌더 =====
+    function rowEl(p, idx){
+      const row = document.createElement('div'); row.className = 'row';
+      const q = document.createElement('div'); q.className = 'q';
+      q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong>`;
+      const eq = document.createElement('span'); eq.textContent = '=';
+      const input = document.createElement('input');
+      input.className = 'ans'; input.type = 'number'; input.inputMode = 'numeric';
+      input.autocomplete = 'off'; input.dataset.index = idx;
+      input.addEventListener('input', handleStart);
+      input.addEventListener('keydown', (e)=> handleEnterAdvance(e, idx));
+      const mark = document.createElement('div'); mark.className = 'mark'; mark.id = `mark-${idx}`;
+      row.appendChild(q); row.appendChild(eq); row.appendChild(input); row.appendChild(mark);
+      return row;
+    }
+    function renderSheet(){
+      sheetEl.innerHTML = '';
+      problems.forEach((p,i)=> sheetEl.appendChild(rowEl(p,i)));
+    }
+
+    // ===== 동작 =====
+    function handleStart(){ if(!started){ started = true; startTimer(); } }
+    function handleEnterAdvance(e, idx){
+      if(e.key === 'Enter'){
+        const inputs = sheetEl.querySelectorAll('input.ans');
+        if(idx < inputs.length - 1){ inputs[idx+1].focus(); }
+        else { grade(); }
+      }
+    }
+
     function generateSet(){
       let n = parseInt(problemCountEl.value, 10);
-      if(isNaN(n) || n < 1) n = 10;
-      if(n > 50) n = 50;
-
+      if(isNaN(n) || n < 1) n = 10; if(n > 100) n = 100;
       const seen = new Set();
       problems = [];
       while(problems.length < n){
@@ -270,114 +193,66 @@
       document.getElementById('count').textContent = problems.length;
       document.getElementById('correct').textContent = correct;
       document.getElementById('wrong').textContent = wrong;
-      document.getElementById('timer').textContent = '00:00.0';
+      timerEl.textContent = '00:00.0';
       renderSheet();
       resultEl.textContent = '';
-      wrongList.hidden = true;
-      wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
+      wrongList.hidden = true; wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
       gradeBtn.disabled = false;
-
-      const first = sheetEl.querySelector('input.ans');
-      if(first){ first.focus(); }
-    }
-
-    function rowEl(p, idx){
-      const row = document.createElement('div'); row.className = 'row';
-      const wrap = document.createElement('div'); wrap.className = 'row-inner';
-
-      const q = document.createElement('div'); q.className = 'q';
-      q.innerHTML = `${idx+1}. <strong>${p.a} ${p.op} ${p.b}</strong>`;
-
-      const eq = document.createElement('span'); eq.className = 'eq'; eq.textContent = '=';
-
-      const input = document.createElement('input');
-      input.className = 'ans'; input.type = 'number'; input.inputMode = 'numeric';
-      input.autocomplete = 'off'; input.dataset.index = idx;
-      input.addEventListener('input', handleStart);
-      input.addEventListener('keydown', (e)=> handleEnterAdvance(e, idx));
-
-      const mark = document.createElement('div'); mark.className = 'mark'; mark.id = `mark-${idx}`;
-
-      wrap.appendChild(q); wrap.appendChild(eq); wrap.appendChild(input); wrap.appendChild(mark);
-      row.appendChild(wrap);
-      return row;
-    }
-    function renderSheet(){
-      sheetEl.innerHTML = '';
-      problems.forEach((p, i)=> sheetEl.appendChild(rowEl(p, i)));
-    }
-
-    function handleStart(){ if(!started){ started = true; startTimer(); } }
-    function handleEnterAdvance(e, idx){
-      if(e.key === 'Enter'){
-        const inputs = sheetEl.querySelectorAll('input.ans');
-        if(idx < inputs.length - 1){ inputs[idx+1].focus(); }
-        else { grade(); }
-      }
+      const first = sheetEl.querySelector('input.ans'); if(first) first.focus();
     }
 
     function grade(){
       if(graded) return;
       const inputs = sheetEl.querySelectorAll('input.ans');
       correct = 0; wrong = 0; const wrongListData = [];
-
-      inputs.forEach((inp, i)=>{
-        const val = Number(inp.value);
-        const p = problems[i];
+      inputs.forEach((inp,i)=>{
+        const val = Number(inp.value); const p = problems[i];
         const m = document.getElementById(`mark-${i}`);
         if(Number.isNaN(val)){
-          m.textContent = '⚠'; m.className = 'mark bad';
-          wrong++; wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: '미입력', ans: p.ans });
+          m.textContent='⚠'; m.className='mark bad';
+          wrong++; wrongListData.push({ idx:i+1, text:`${p.a} ${p.op} ${p.b}`, user:'미입력', ans:p.ans });
         } else if(val === p.ans){
-          m.textContent = '✓'; m.className = 'mark ok'; correct++;
+          m.textContent='✓'; m.className='mark ok'; correct++;
         } else {
-          m.textContent = '✗'; m.className = 'mark bad';
-          wrong++; wrongListData.push({ idx: i+1, text: `${p.a} ${p.op} ${p.b}`, user: val, ans: p.ans });
+          m.textContent='✗'; m.className='mark bad';
+          wrong++; wrongListData.push({ idx:i+1, text:`${p.a} ${p.op} ${p.b}`, user:val, ans:p.ans });
         }
         inp.disabled = true;
       });
-
       stopTimer();
       const elapsed = Date.now() - startTime;
-      document.getElementById('timer').textContent = fmt(elapsed);
-      graded = true;
-
+      timerEl.textContent = fmt(elapsed); graded = true;
       document.getElementById('correct').textContent = correct;
       document.getElementById('wrong').textContent = wrong;
       resultEl.textContent = `결과: ${problems.length}문제 중 ${correct}개 정답, ${wrong}개 오답 · 시간 ${fmt(elapsed)}`;
-
       wrongList.hidden = wrongListData.length === 0;
       wrongItems.innerHTML = wrongListData.length === 0 ? '<p>오답이 없어요 🎉</p>' : '';
       wrongListData.forEach(item=>{
         const div = document.createElement('div');
-        div.className = 'wrong-item';
+        div.className='wrong-item';
         div.textContent = `${item.idx}. ${item.text} → 내 답: ${item.user}, 정답: ${item.ans}`;
         wrongItems.appendChild(div);
       });
-
       gradeBtn.disabled = true;
     }
 
     function resetAll(){
-      stopTimer(); started = false; graded = false; problems = [];
-      sheetEl.innerHTML = '';
-      document.getElementById('count').textContent = '0';
-      document.getElementById('correct').textContent = '0';
-      document.getElementById('wrong').textContent = '0';
-      document.getElementById('timer').textContent = '00:00.0';
-      resultEl.textContent = '';
-      wrongList.hidden = true;
-      wrongItems.innerHTML = '<p>아직 오답이 없습니다.</p>';
-      gradeBtn.disabled = true;
+      stopTimer(); started=false; graded=false; problems=[];
+      sheetEl.innerHTML='';
+      document.getElementById('count').textContent='0';
+      document.getElementById('correct').textContent='0';
+      document.getElementById('wrong').textContent='0';
+      timerEl.textContent='00:00.0'; resultEl.textContent='';
+      wrongList.hidden=true; wrongItems.innerHTML='<p>아직 오답이 없습니다.</p>';
+      gradeBtn.disabled=true;
     }
 
-    document.querySelectorAll('input[name="digitsA"]').forEach(r=>r.addEventListener('change',e=>{ digitsA = Number(e.target.value) || 1; }));
-    document.querySelectorAll('input[name="digitsB"]').forEach(r=>r.addEventListener('change',e=>{ digitsB = Number(e.target.value) || 1; }));
-
+    // 이벤트
     newSetBtn.addEventListener('click', generateSet);
     gradeBtn.addEventListener('click', grade);
     resetBtn.addEventListener('click', resetAll);
 
+    // 초기
     generateSet();
   </script>
 </body>
