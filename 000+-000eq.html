@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>세 자리 수 방정식 연습</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Comic Sans MS', 'Arial', sans-serif;
+      background: linear-gradient(to bottom right, #dfffdc, #fbe7c6);
+      text-align: center;
+      padding: 40px;
+      color: #333;
+    }
+    h1 { font-size: 2em; margin-bottom: 20px; }
+    .question { font-size: 2.4em; margin: 20px 0; color: #222; }
+    input { font-size: 1.4em; width: 140px; text-align: center; padding: 10px; border-radius: 10px; border: 2px solid #aaa; }
+    button { font-size: 1.2em; padding: 10px 20px; margin: 10px; border-radius: 12px; border: none; background-color: #4CAF50; color: white; cursor: pointer; }
+    button:hover { background-color: #388e3c; }
+    button:disabled { background-color: #a5d6a7; cursor: not-allowed; }
+    #result { font-size: 1.3em; margin-top: 20px; font-weight: bold; }
+    #stats { margin-top: 30px; font-size: 1.1em; background: #ffffffaa; display: inline-block; padding: 15px 25px; border-radius: 10px; box-shadow: 0 0 8px #ccc; }
+    #wrongList { margin-top: 30px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; background: #fff4e6; padding: 15px; border-radius: 10px; box-shadow: 0 0 5px #ccc; }
+    .wrong-item { font-size: 1em; margin: 5px 0; }
+    .back { margin-top: 40px; display: inline-block; font-size: 1em; color: #0077cc; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <h1>📊 세 자리 수 방정식 연습</h1>
+
+  <div class="question" id="question">문제를 불러오는 중...</div>
+
+  <input type="number" id="answerInput" placeholder="정답 입력" inputmode="numeric" autocomplete="off">
+  <div>
+    <button id="submitBtn" onclick="checkAnswer()">제출</button>
+    <button onclick="nextQuestion()">다음 문제</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div id="stats">
+    <p>총 문제 수: <span id="total">0</span></p>
+    <p>맞힌 문제 수: <span id="correct">0</span></p>
+    <p>틀린 문제 수: <span id="wrong">0</span></p>
+  </div>
+
+  <div id="wrongList">
+    <h3>❌ 오답 목록</h3>
+    <div id="wrongItems">
+      <p>아직 오답이 없습니다.</p>
+    </div>
+  </div>
+
+  <a href="index.html" class="back">🏠 메인으로 돌아가기</a>
+
+  <script>
+    let num1, num2, operator, correctAnswer;
+    let total = 0, correct = 0, wrong = 0;
+    let wrongProblems = [];
+    let answered = false;
+
+    function generateQuestion() {
+      num1 = Math.floor(Math.random() * 900) + 100; // 100~999
+      num2 = Math.floor(Math.random() * 900) + 100; // 100~999
+      operator = Math.random() < 0.5 ? '+' : '-';
+
+      // 음수 방지
+      if (operator === '-' && num2 > num1) {
+        [num1, num2] = [num2, num1];
+      }
+
+      // 방정식 형태 만들기
+      let formType = Math.floor(Math.random() * 2); // 0: x가 왼쪽, 1: x가 오른쪽
+      if (operator === '+') {
+        if (formType === 0) {
+          // x + num2 = sum
+          correctAnswer = num1;
+          document.getElementById("question").innerText = `□ + ${num2} = ${num1 + num2}`;
+        } else {
+          // num1 + □ = sum
+          correctAnswer = num2;
+          document.getElementById("question").innerText = `${num1} + □ = ${num1 + num2}`;
+        }
+      } else {
+        if (formType === 0) {
+          // x - num2 = diff
+          correctAnswer = num1;
+          document.getElementById("question").innerText = `□ - ${num2} = ${num1 - num2}`;
+        } else {
+          // num1 - x = diff
+          correctAnswer = num2;
+          document.getElementById("question").innerText = `${num1} - □ = ${num1 - num2}`;
+        }
+      }
+    }
+
+    function nextQuestion() {
+      generateQuestion();
+      answered = false;
+      document.getElementById("answerInput").value = '';
+      document.getElementById("result").innerText = '';
+      const submitBtn = document.getElementById("submitBtn");
+      submitBtn.disabled = false;
+      submitBtn.textContent = '제출';
+    }
+
+    function updateStats() {
+      document.getElementById("total").innerText = total;
+      document.getElementById("correct").innerText = correct;
+      document.getElementById("wrong").innerText = wrong;
+    }
+
+    function updateWrongList() {
+      const container = document.getElementById("wrongItems");
+      if (wrongProblems.length === 0) {
+        container.innerHTML = "<p>아직 오답이 없습니다.</p>";
+        return;
+      }
+      container.innerHTML = "";
+      wrongProblems.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "wrong-item";
+        div.innerText = `${index + 1}. ${item.problem} → 내 답: ${item.user}, 정답: ${item.correct}`;
+        container.appendChild(div);
+      });
+    }
+
+    function checkAnswer() {
+      if (answered) return;
+
+      const inputEl = document.getElementById("answerInput");
+      const userInput = parseInt(inputEl.value, 10);
+      const submitBtn = document.getElementById("submitBtn");
+
+      if (isNaN(userInput)) {
+        document.getElementById("result").innerText = "⚠️ 숫자를 입력해주세요.";
+        inputEl.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      total++;
+
+      if (userInput === correctAnswer) {
+        correct++;
+        document.getElementById("result").innerText = "✅ 정답이에요! 잘했어요! (Enter를 누르면 다음 문제)";
+      } else {
+        wrong++;
+        wrongProblems.push({
+          problem: document.getElementById("question").innerText,
+          user: userInput,
+          correct: correctAnswer
+        });
+        document.getElementById("result").innerText =
+          `❌ 오답이에요. 정답은 ${correctAnswer}입니다. (Enter를 누르면 다음 문제)`;
+      }
+
+      answered = true;
+      submitBtn.textContent = '채점 완료';
+      updateStats();
+      updateWrongList();
+    }
+
+    // Enter 키 동작
+    const answerInput = document.getElementById("answerInput");
+    answerInput.addEventListener("keydown", (e) => {
+      if (e.isComposing) return;
+      if (e.key === "Enter") {
+        if (answered) nextQuestion();
+        else checkAnswer();
+      }
+    });
+
+    // 초기 시작
+    nextQuestion();
+    updateStats();
+    updateWrongList();
+  </script>
+</body>
+</html>
