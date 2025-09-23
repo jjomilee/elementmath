@@ -62,7 +62,7 @@
 </head>
 <body>
 
-  <h1>📊 두 자리수 방정식 연습</h1>
+  <h1>📊 두 자리 수 방정식 연습</h1>
 
   <div class="question" id="question">문제를 불러오는 중...</div>
 
@@ -96,12 +96,8 @@
     let answered = false;
 
     function generateNumber() {
-      // 50% 확률로 두 자리, 50% 확률로 세 자리
-      if (Math.random() < 0.5) {
-        return Math.floor(Math.random() * 90) + 10;   // 10~99
-      } else {
-        return Math.floor(Math.random() * 900) + 100; // 100~999
-      }
+      // 두 자리 수 전용 (10~99)
+      return Math.floor(Math.random() * 90) + 10;
     }
 
     function generateQuestion() {
