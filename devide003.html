@@ -67,7 +67,7 @@
 </head>
 <body>
 
-  <h1>➗ 나머지가 있는 나눗셈 기초 </h1>
+  <h1>➗ 나머지가 있는 나눗셈 연습</h1>
 
   <div class="question" id="question">문제를 불러오는 중...</div>
 
@@ -99,23 +99,24 @@
   <a href="index.html" class="back">🏠 메인으로 돌아가기</a>
 
   <script>
-    let dividend = 1000;
-    let divisor, quotient, remainder;
+    let dividend, divisor, quotient, remainder;
     let total = 0, correct = 0, wrong = 0;
     let wrongProblems = [];
     let answered = false;
 
     function nextQuestion() {
-      // 제수(2~9), 나머지가 반드시 존재하도록 필터링
       do {
-        divisor = Math.floor(Math.random() * 9) + 1; // 1~9
-      } while (divisor === 1 || dividend % divisor === 0);
+        dividend = Math.floor(Math.random() * 1000) + 1; // 1~1000
+        divisor = Math.floor(Math.random() * 9) + 1;     // 1~9
+      } while (divisor === 1 || dividend % divisor === 0); 
+      // 제수가 1이거나 나머지가 0이면 다시 뽑음
 
       quotient = Math.floor(dividend / divisor);
       remainder = dividend % divisor;
       answered = false;
 
-      document.getElementById("question").innerText = `${dividend} ÷ ${divisor} = ? (몫, 나머지)`;
+      document.getElementById("question").innerText =
+        `${dividend} ÷ ${divisor} = ? (몫, 나머지)`;
 
       document.getElementById("quotientInput").value = '';
       document.getElementById("remainderInput").value = '';
@@ -140,7 +141,8 @@
       wrongProblems.forEach((item, index) => {
         const div = document.createElement("div");
         div.className = "wrong-item";
-        div.innerText = `${index + 1}. ${item.problem} → 내 답: 몫 ${item.userQ}, 나머지 ${item.userR}, 정답: 몫 ${item.q}, 나머지 ${item.r}`;
+        div.innerText =
+          `${index + 1}. ${item.problem} → 내 답: 몫 ${item.userQ}, 나머지 ${item.userR}, 정답: 몫 ${item.q}, 나머지 ${item.r}`;
         container.appendChild(div);
       });
     }
@@ -153,7 +155,8 @@
       const submitBtn = document.getElementById("submitBtn");
 
       if (isNaN(qInput) || isNaN(rInput)) {
-        document.getElementById("result").innerText = "⚠️ 몫과 나머지를 모두 입력해주세요.";
+        document.getElementById("result").innerText =
+          "⚠️ 몫과 나머지를 모두 입력해주세요.";
         return;
       }
 
@@ -162,7 +165,8 @@
 
       if (qInput === quotient && rInput === remainder) {
         correct++;
-        document.getElementById("result").innerText = "✅ 정답이에요! 잘했어요! (Enter → 다음 문제)";
+        document.getElementById("result").innerText =
+          "✅ 정답이에요! 잘했어요! (Enter → 다음 문제)";
       } else {
         wrong++;
         wrongProblems.push({
@@ -172,7 +176,7 @@
           q: quotient,
           r: remainder
         });
-        document.getElementById("result").innerText = 
+        document.getElementById("result").innerText =
           `❌ 오답! 정답은 몫 ${quotient}, 나머지 ${remainder}입니다. (Enter → 다음 문제)`;
       }
 
@@ -182,7 +186,6 @@
       updateWrongList();
     }
 
-    // Enter 키: 채점 전이면 checkAnswer(), 채점 후이면 nextQuestion()
     document.addEventListener("keydown", (e) => {
       if (e.isComposing) return;
       if (e.key === "Enter") {
