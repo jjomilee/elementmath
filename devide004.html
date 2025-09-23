@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>나머지가 있는 나눗셈</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Comic Sans MS', 'Arial', sans-serif;
+      background: linear-gradient(to bottom right, #dfffdc, #fbe7c6);
+      text-align: center;
+      padding: 40px;
+      color: #333;
+    }
+    h1 { font-size: 2em; margin-bottom: 30px; }
+    .question { font-size: 2.2em; margin: 30px 0; color: #222; }
+
+    .inputs { margin-bottom: 8px; }
+    input {
+      font-size: 1.2em;
+      width: 120px;
+      text-align: center;
+      padding: 8px;
+      margin: 5px;
+      border-radius: 8px;
+      border: 2px solid #aaa;
+    }
+
+    button {
+      font-size: 1.1em;
+      padding: 8px 16px;
+      margin: 10px;
+      border-radius: 10px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background-color: #388e3c; }
+    button:disabled { background-color: #a5d6a7; cursor: not-allowed; }
+
+    #result { font-size: 1.2em; margin-top: 14px; font-weight: bold; }
+
+    #stats {
+      margin-top: 24px;
+      font-size: 1.05em;
+      background: #ffffffdd;
+      padding: 12px 20px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 0 8px #ccc;
+    }
+
+    #wrongList {
+      margin-top: 26px;
+      text-align: left;
+      max-width: 460px;
+      margin-left: auto;
+      margin-right: auto;
+      background: #fff8e1;
+      padding: 14px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px #ccc;
+    }
+    .wrong-item { font-size: 1em; margin: 5px 0; }
+    .back { margin-top: 30px; display: inline-block; font-size: 1em; color: #0077cc; text-decoration: none; }
+  </style>
+</head>
+<body>
+
+  <h1>➗ 나머지가 있는 나눗셈</h1>
+
+  <div class="question" id="question">문제를 불러오는 중...</div>
+
+  <div class="inputs">
+    <input type="number" id="quotientInput" placeholder="몫 입력" inputmode="numeric" autocomplete="off">
+    <input type="number" id="remainderInput" placeholder="나머지 입력" inputmode="numeric" autocomplete="off">
+  </div>
+
+  <div>
+    <button id="submitBtn" onclick="checkAnswer()">제출</button>
+    <button id="nextBtn" onclick="nextQuestion()">다음 문제</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div id="stats">
+    <p>총 문제 수: <span id="total">0</span></p>
+    <p>맞힌 문제 수: <span id="correct">0</span></p>
+    <p>틀린 문제 수: <span id="wrong">0</span></p>
+  </div>
+
+  <div id="wrongList">
+    <h3>❌ 오답 목록</h3>
+    <div id="wrongItems">
+      <p>아직 오답이 없습니다.</p>
+    </div>
+  </div>
+
+  <a href="index.html" class="back">🏠 메인으로 돌아가기</a>
+
+  <script>
+    let dividend, divisor, quotient, remainder;
+    let total = 0, correct = 0, wrong = 0;
+    let wrongProblems = [];
+    let answered = false;
+    let prevKey = ""; // 같은 문제 연속 방지
+
+    function randInt(min, max) {
+      // [min, max] 정수
+      return Math.floor(Math.random() * (max - min + 1)) +*
