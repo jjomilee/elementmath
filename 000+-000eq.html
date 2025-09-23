@@ -14,10 +14,45 @@
     }
     h1 { font-size: 2em; margin-bottom: 20px; }
     .question { font-size: 2.4em; margin: 20px 0; color: #222; }
-    input { font-size: 1.4em; width: 140px; text-align: center; padding: 10px; border-radius: 10px; border: 2px solid #aaa; }
-    button { font-size: 1.2em; padding: 10px 20px; margin: 10px; border-radius: 12px; border: none; background-color: #4CAF50; color: white; cursor: pointer; }
+
+    .blank {
+      display: inline-block;
+      width: 70px;
+      height: 60px;
+      border: 3px solid #555;
+      border-radius: 8px;
+      vertical-align: middle;
+      font-size: 1.2em;
+      line-height: 60px;
+      text-align: center;
+      background: #fff;
+      margin: 0 5px;
+      color: #bbb;           /* 흐린 회색 */
+      font-style: italic;    /* 기울여서 더 '힌트' 느낌 */
+    }
+
+    input {
+      font-size: 1.4em;
+      width: 140px;
+      text-align: center;
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid #aaa;
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 12px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
     button:hover { background-color: #388e3c; }
     button:disabled { background-color: #a5d6a7; cursor: not-allowed; }
+
     #result { font-size: 1.3em; margin-top: 20px; font-weight: bold; }
     #stats { margin-top: 30px; font-size: 1.1em; background: #ffffffaa; display: inline-block; padding: 15px 25px; border-radius: 10px; box-shadow: 0 0 8px #ccc; }
     #wrongList { margin-top: 30px; text-align: left; max-width: 400px; margin-left: auto; margin-right: auto; background: #fff4e6; padding: 15px; border-radius: 10px; box-shadow: 0 0 5px #ccc; }
@@ -65,32 +100,30 @@
       num2 = Math.floor(Math.random() * 900) + 100; // 100~999
       operator = Math.random() < 0.5 ? '+' : '-';
 
-      // 음수 방지
       if (operator === '-' && num2 > num1) {
         [num1, num2] = [num2, num1];
       }
 
-      // 방정식 형태 만들기
-      let formType = Math.floor(Math.random() * 2); // 0: x가 왼쪽, 1: x가 오른쪽
+      let formType = Math.floor(Math.random() * 2); // 0: 빈칸 왼쪽, 1: 빈칸 오른쪽
       if (operator === '+') {
         if (formType === 0) {
-          // x + num2 = sum
           correctAnswer = num1;
-          document.getElementById("question").innerText = `□ + ${num2} = ${num1 + num2}`;
+          document.getElementById("question").innerHTML =
+            `<span class="blank">?</span> + ${num2} = ${num1 + num2}`;
         } else {
-          // num1 + □ = sum
           correctAnswer = num2;
-          document.getElementById("question").innerText = `${num1} + □ = ${num1 + num2}`;
+          document.getElementById("question").innerHTML =
+            `${num1} + <span class="blank">?</span> = ${num1 + num2}`;
         }
       } else {
         if (formType === 0) {
-          // x - num2 = diff
           correctAnswer = num1;
-          document.getElementById("question").innerText = `□ - ${num2} = ${num1 - num2}`;
+          document.getElementById("question").innerHTML =
+            `<span class="blank">?</span> - ${num2} = ${num1 - num2}`;
         } else {
-          // num1 - x = diff
           correctAnswer = num2;
-          document.getElementById("question").innerText = `${num1} - □ = ${num1 - num2}`;
+          document.getElementById("question").innerHTML =
+            `${num1} - <span class="blank">?</span> = ${num1 - num2}`;
         }
       }
     }
@@ -162,7 +195,7 @@
       updateWrongList();
     }
 
-    // Enter 키 동작
+    // Enter 키 처리
     const answerInput = document.getElementById("answerInput");
     answerInput.addEventListener("keydown", (e) => {
       if (e.isComposing) return;
@@ -172,7 +205,7 @@
       }
     });
 
-    // 초기 시작
+    // 초기 실행
     nextQuestion();
     updateStats();
     updateWrongList();
