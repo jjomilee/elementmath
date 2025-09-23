@@ -1,0 +1,227 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <title>나머지 없는 나눗셈 (≤10000, 제수 1~999)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <style>
+    body {
+      font-family: 'Comic Sans MS', 'Arial', sans-serif;
+      background: linear-gradient(to bottom right, #dfffdc, #fbe7c6);
+      text-align: center;
+      padding: 40px;
+      color: #333;
+    }
+
+    h1 { font-size: 2em; margin-bottom: 30px; }
+
+    .question {
+      font-size: 2.4em;
+      margin: 30px 0;
+      color: #222;
+    }
+
+    input {
+      font-size: 1.4em;
+      width: 180px; /* 몫은 최대 5자리(10000)까지 가능 */
+      text-align: center;
+      padding: 10px;
+      border-radius: 10px;
+      border: 2px solid #aaa;
+    }
+
+    button {
+      font-size: 1.2em;
+      padding: 10px 20px;
+      margin: 10px;
+      border-radius: 12px;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover { background-color: #388e3c; }
+    button:disabled { background-color: #a5d6a7; cursor: not-allowed; }
+
+    #result { font-size: 1.3em; margin-top: 20px; font-weight: bold; }
+
+    #stats {
+      margin-top: 30px;
+      font-size: 1.1em;
+      background: #ffffffdd;
+      padding: 15px 25px;
+      border-radius: 10px;
+      display: inline-block;
+      box-shadow: 0 0 8px #ccc;
+    }
+
+    #wrongList {
+      margin-top: 30px;
+      text-align: left;
+      max-width: 420px;
+      margin-left: auto;
+      margin-right: auto;
+      background: #fff8e1;
+      padding: 15px;
+      border-radius: 10px;
+      box-shadow: 0 0 5px #ccc;
+    }
+    .wrong-item { font-size: 1em; margin: 5px 0; }
+
+    .back {
+      margin-top: 40px;
+      display: inline-block;
+      font-size: 1em;
+      color: #0077cc;
+      text-decoration: none;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>➗ 나머지 없는 나눗셈 (≤10000, 제수 1~999)</h1>
+
+  <div class="question" id="question">문제를 불러오는 중...</div>
+
+  <input type="number" id="answerInput" placeholder="몫 입력" inputmode="numeric" autocomplete="off">
+  <div>
+    <button id="submitBtn" onclick="checkAnswer()">제출</button>
+    <button id="nextBtn" onclick="nextQuestion()">다음 문제</button>
+  </div>
+
+  <div id="result"></div>
+
+  <div id="stats">
+    <p>총 문제 수: <span id="total">0</span></p>
+    <p>맞힌 문제 수: <span id="correct">0</span></p>
+    <p>틀린 문제 수: <span id="wrong">0</span></p>
+  </div>
+
+  <div id="wrongList">
+    <h3>❌ 오답 목록</h3>
+    <div id="wrongItems">
+      <p>아직 오답이 없습니다.</p>
+    </div>
+  </div>
+
+  <a href="index.html" class="back">🏠 메인으로 돌아가기</a>
+
+  <script>
+    let dividend, divisor, correctAnswer;
+    let total = 0, correct = 0, wrong = 0;
+    let wrongProblems = [];
+    let answered = false;
+    let prevKey = ""; // 직전 문제(중복 방지용)
+
+    function randInt(min, max) {
+      // [min, max] 정수
+      return Math.floor(Math.random() * (max - min + 1)) + min;
+    }
+
+    function nextQuestion() {
+      let key;
+      do {
+        // 제수(나누는 수): 1~999 (한자리~세자리 자연수)
+        divisor = randInt(1, 999);
+
+        // 몫의 최대값: floor(10000 / divisor)
+        const maxQuotient = Math.floor(10000 / divisor);
+
+        // 몫은 1 이상 maxQuotient 이하
+        // maxQuotient는 divisor>=1 이므로 항상 >=10, >=1 보장
+        correctAnswer = randInt(1, Math.max(1, maxQuotient));
+
+        // 피제수(나눠지는 수): 항상 10000 이하여야 함
+        dividend = divisor * correctAnswer;
+
+        // 같은 문제 반복 방지
+        key = `${dividend}/${divisor}`;
+      } while (key === prevKey);
+
+      prevKey = key;
+      answered = false;
+
+      document.getElementById("question").innerText = `${dividend} ÷ ${divisor} = ?`;
+      const input = document.getElementById("answerInput");
+      input.value = '';
+      input.focus();
+      document.getElementById("result").innerText = '';
+      document.getElementById("submitBtn").disabled = false;
+      document.getElementById("submitBtn").textContent = '제출';
+    }
+
+    function updateStats() {
+      document.getElementById("total").innerText = total;
+      document.getElementById("correct").innerText = correct;
+      document.getElementById("wrong").innerText = wrong;
+    }
+
+    function updateWrongList() {
+      const container = document.getElementById("wrongItems");
+      if (wrongProblems.length === 0) {
+        container.innerHTML = "<p>아직 오답이 없습니다.</p>";
+        return;
+      }
+      container.innerHTML = "";
+      wrongProblems.forEach((item, index) => {
+        const div = document.createElement("div");
+        div.className = "wrong-item";
+        div.innerText = `${index + 1}. ${item.problem} → 내 답: ${item.user}, 정답: ${item.correct}`;
+        container.appendChild(div);
+      });
+    }
+
+    function checkAnswer() {
+      if (answered) return;
+
+      const inputEl = document.getElementById("answerInput");
+      const userInput = parseInt(inputEl.value, 10);
+      const submitBtn = document.getElementById("submitBtn");
+
+      if (isNaN(userInput)) {
+        document.getElementById("result").innerText = "⚠️ 숫자를 입력해주세요.";
+        inputEl.focus();
+        return;
+      }
+
+      submitBtn.disabled = true;
+      total++;
+
+      if (userInput === correctAnswer) {
+        correct++;
+        document.getElementById("result").innerText =
+          "✅ 정답이에요! 잘했어요! (Enter를 누르면 다음 문제)";
+      } else {
+        wrong++;
+        wrongProblems.push({
+          problem: `${dividend} ÷ ${divisor}`,
+          user: userInput,
+          correct: correctAnswer
+        });
+        document.getElementById("result").innerText =
+          `❌ 오답이에요. 정답은 ${correctAnswer}입니다. (Enter를 누르면 다음 문제)`;
+      }
+
+      answered = true;
+      submitBtn.textContent = '채점 완료';
+      updateStats();
+      updateWrongList();
+    }
+
+    // Enter 키: 채점 전이면 checkAnswer(), 채점 후이면 nextQuestion()
+    const answerInput = document.getElementById("answerInput");
+    answerInput.addEventListener("keydown", (e) => {
+      if (e.isComposing) return;
+      if (e.key === "Enter") {
+        if (answered) nextQuestion();
+        else checkAnswer();
+      }
+    });
+
+    // 초기화
+    nextQuestion();
+    updateStats();
+    updateWrongList();
+  </script>
+</body>
+</html>
