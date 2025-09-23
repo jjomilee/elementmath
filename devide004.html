@@ -2,7 +2,7 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
-  <title>나머지가 있는 나눗셈</title>
+  <title>나머지가 있는 나눗셈 (제수: 두 자리)</title>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <style>
     body {
@@ -68,9 +68,9 @@
 </head>
 <body>
 
-  <h1>➗ 나머지가 있는 나눗셈 (피제수 ≤ 10000, 제수 ≤ 3자리)</h1>
+  <h1>➗ 나머지가 있는 나눗셈 (제수: 두 자리)</h1>
 
-  <div class="question" id="question">문제를 불러오는 중...</div>
+  <div class="question" id="question"></div>
 
   <div class="inputs">
     <input type="number" id="quotientInput" placeholder="몫 입력" inputmode="numeric" autocomplete="off">
@@ -113,12 +113,12 @@
     function nextQuestion() {
       let key;
       do {
-        dividend = randInt(1, 10000);    // 피제수 1~10000
-        divisor = randInt(2, 999);       // 제수 2~999
+        dividend = randInt(1, 10000);   // 피제수 1~10000
+        divisor = randInt(10, 99);      // 제수 두 자리 (10~99)
         quotient = Math.floor(dividend / divisor);
         remainder = dividend % divisor;
         key = `${dividend}/${divisor}`;
-      } while (remainder === 0 || key === prevKey); // 나머지가 없거나 같은 문제면 다시
+      } while (remainder === 0 || key === prevKey); // 나머지 0이면 다시
       prevKey = key;
 
       answered = false;
@@ -193,7 +193,7 @@
       updateWrongList();
     }
 
-    // Enter키: 채점 전이면 checkAnswer, 채점 후면 nextQuestion
+    // Enter키 동작
     document.addEventListener("keydown", (e) => {
       if (e.isComposing) return;
       if (e.key === "Enter") {
@@ -202,7 +202,7 @@
       }
     });
 
-    // 안전하게 초기화
+    // 첫 문제 로딩
     window.addEventListener('DOMContentLoaded', () => {
       nextQuestion();
       updateStats();
